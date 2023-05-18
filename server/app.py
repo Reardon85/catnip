@@ -17,5 +17,11 @@ from models import User
 
 # Views go here!
 
+
+@app.route('/')
+@app.route('/<int:id>')
+def index(id=0):
+    return render_template("index.html")
+
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
