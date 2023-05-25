@@ -16,6 +16,11 @@ python-dotenv = "*"
 flask-bcrypt = "*"
 faker = "*"
 boto3 = "*"
+authlib = "*"
+python-jose = "*"
+six = "*"
+pyjwt = {extras = ["crypto"], version = "*"}
+requests = "*"
 
 [dev-packages]
 
