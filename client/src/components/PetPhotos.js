@@ -4,14 +4,14 @@ import {useParams} from "react-router-dom";
 import PhotoCarousel from './PhotoCarousel';
 import { Container} from 'react-bootstrap';
 
-const Photos = () => {
+const PetPhotos = () => {
 
     const [photoList, setPhotoList] = useState([])
-    const {userId} = useParams()
+    const {petId} = useParams()
   
     useEffect(() => {
-        //User_Photos - get
-        fetch(`/api/user/photos/${userId}`)
+        //Pet_Photos - get
+        fetch(`/api/pet/photos/${petId}`)
             .then((r) => {
                 if (!r.ok){
                     r.json().then((err) => {throw new Error(err)});
@@ -24,10 +24,10 @@ const Photos = () => {
             .catch((err) => {
                 console.log(err);
             })
-    }, [userId]);
+    }, [petId]);
   
     const handleRemoveImage = (id) => {
-
+        //Remove_PetPhoto - delete
         fetch(`/api/photo/${id}`, {
             method: 'DELETE',     
         })
@@ -63,4 +63,4 @@ const Photos = () => {
     );
 };
 
-export default Photos;
+export default PetPhotos;

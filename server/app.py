@@ -3,7 +3,9 @@
 # Standard library imports
 
 # Remote library imports
-
+from functools import wraps
+from jose import jwt
+import json
 from flask import request, make_response, abort, jsonify, render_template, session    
 from flask_restful import Resource
 import os
@@ -11,27 +13,196 @@ from uuid import uuid4
 import boto3
 from dotenv import load_dotenv
 load_dotenv()
+import requests
+from math import radians, sin, cos, sqrt, atan2
+from datetime import datetime
 
 # Local imports
-from config import app, db, api, auth0, or_, and_, not_
+from config import app, db, api, auth0, or_, and_, not_, desc
 from models import User, Visitor, Match, Photo, Pet, PetPhoto, Conversation, Message, favorites
 
 # Views go here!
 
+AUTH0_DOMAIN = "dev-yxel2dejc2kr1a0k.us.auth0.com"
+API_AUDIENCE = 'https://dev-yxel2dejc2kr1a0k.us.auth0.com/api/v2/'
+ALGORITHMS = ["RS256"]
+
+class AuthError(Exception):
+    def __init__(self, error, status_code):
+        self.error = error
+        self.status_code = status_code
+
+def get_token_auth_header():
+    """Obtains the access token from the Authorization Header"""
+    auth = request.headers.get('Authorization', None)
+    if not auth:
+        raise AuthError({"code": "authorization_header_missing",
+                        "description":
+                            "Authorization header is expected"}, 401)
+
+    parts = auth.split()
+
+    if parts[0].lower() != 'bearer':
+        raise AuthError({"code": "invalid_header",
+                        "description":
+                            "Authorization header must start with"
+                            " Bearer"}, 401)
+    elif len(parts) == 1:
+        raise AuthError({"code": "invalid_header",
+                        "description": "Token not found"}, 401)
+    elif len(parts) > 2:
+        raise AuthError({"code": "invalid_header",
+                        "description":
+                            "Authorization header must be"
+                            " Bearer token"}, 401)
+
+    token = parts[1]
+    return token
+
+def requires_auth(f):
+    """Determines if the access token is valid"""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = get_token_auth_header()
+        jsonurl = requests.get('https://' + AUTH0_DOMAIN + '/.well-known/jwks.json')
+        jwks = jsonurl.json()
+        unverified_header = jwt.get_unverified_header(token)
+        rsa_key = {}
+        for key in jwks['keys']:
+            if key['kid'] == unverified_header['kid']:
+                rsa_key = {
+                    'kty': key['kty'],
+                    'kid': key['kid'],
+                    'use': key['use'],
+                    'n': key['n'],
+                    'e': key['e'],
+                    'alg': key['alg']
+                }
+        try:
+            payload = jwt.decode(
+                token,
+                rsa_key,
+                algorithms=ALGORITHMS,
+                audience=API_AUDIENCE,
+                issuer='https://' + AUTH0_DOMAIN + '/'
+            )
+        except Exception:
+            raise AuthError({"code": "invalid_header",
+                            "description":
+                                "Unable to parse authentication"
+                                " token."}, 401)
+        
+        return f(*args, **kwargs)
+
+    return decorated
+
+def add_coordinates(zip_code, the_client):
+    api_key = os.environ.get('GEO_CODING_KEY')
+    url = f'https://maps.googleapis.com/maps/api/geocode/json?address={zip_code}&key={api_key}'
+    response = requests.get(url)
+    data = response.json()
+
+    coordinates = data['results'][0]['geometry']['location']
+    components = data['results'][0]['address_components']
+
+    for component in components:
+        if 'locality' in component['types']:
+            city = component['long_name']
+        if 'administrative_area_level_1' in component['types']:
+            state = component['short_name']
+
+    the_client.latitude = coordinates['lat']
+    the_client.longitude= coordinates['lng']
+    the_client.city= city
+    the_client.state=state
+    db.session.add(the_client)
+    db.session.commit()
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    # approximate radius of earth in km
+    R = 3958.8 
+
+    lat1 = radians(lat1)
+    lon1 = radians(lon1)
+    lat2 = radians(lat2)
+    lon2 = radians(lon2)
+
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    distance = R * c
+    return distance
+
+
 class Login(Resource):
+    @requires_auth
     def get(self):
         # Returns User Info for Client. May be weird Auth0. 
         # For Login component - [Insert Button Click Function]
-        pass
 
+
+        print("It worked")
+        token = get_token_auth_header()
+        unverified_claims = jwt.get_unverified_claims(token)
+        sub_id = unverified_claims['sub']
+        session['sub'] = sub_id
+        the_client = User.query.filter_by(auth_sub=sub_id).first()
+        if the_client:
+            session['user_id'] = the_client.id
+            return make_response({'newUser':False, 'user':the_client.to_dict()}, 200)
+            
+        return make_response({'user':False, 'newUser':True}, 200)
 api.add_resource(Login, '/api/login')
 
-class Check_Session(Resource):
-    def get(self):
-        # Might Not Need. 
-        # For App Component - useEffect[]
-        pass
-api.add_resource(Check_Session, '/api/check-session')
+
+class Register(Resource):
+    def post(self):
+        # Returns User Info for Client. May be weird Auth0. 
+        # For Login component - [Insert Button Click Function]
+        print("registering")
+        
+        file = request.files['image']
+        username = request.values['username']
+        email = request.values['email']
+        zipcode = request.values['zipcode']
+        gender = request.values['gender']
+        orientation = request.values['orientation']
+        birthday_str = request.values['birthday']
+        birthday = datetime.strptime(birthday_str, '%Y-%m-%d').date()
+        print (birthday)
+
+        
+
+        s3 = boto3.resource('s3', aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
+        bucket = s3.Bucket('the-tea')
+        test = bucket.put_object(Key=file.filename, Body=file)
+        file_url = f"https://{bucket.name}.s3.amazonaws.com/{file.filename}"
+
+        the_client = User(
+            username=username.capitalize(), 
+            birthdate=birthday, 
+            email=email, 
+            avatar_url=file_url, 
+            zipcode=zipcode, 
+            orientation=orientation, 
+            gender=gender, 
+            auth_sub=session['sub']
+            )
+        db.session.add(the_client)
+        db.session.commit()
+        session['user_id'] = the_client.id
+        add_coordinates(zipcode, the_client)
+        
+        return make_response({'user':the_client.to_dict(), 'newUser': False}, 200)
+api.add_resource(Register, '/api/register')
+
+
+        
+
 
 
 
@@ -49,36 +220,36 @@ class Visited(Resource):
         the_client = User.query.filter_by(id=session['user_id']).first()
         visited_list = Visitor.query.filter_by(visitor_id=session['user_id']).limit(5).all()
 
-        visited_dict = [{**visited.to_dict(rules=('-seen')), **visited.visited.to_dict(only=('avatar_url', 'username'))} for visited in visited_list]
+        visited_dict = [{**visited.to_dict(rules=('-seen',)), **visited.visited.to_dict(only=('avatar_url', 'username'))} for visited in visited_list]
 
         return make_response(visited_dict, 200)
 api.add_resource(Visited, '/api/visited')
 
 class Favorites(Resource):
     def get(self):
-        # Using User.favorites  returns a list of clients favorite users who are online . 
+        # Using User.favorited_users  returns a list of clients favorite users who are online . 
         # For Home/ActiveFavorites comp - useEffect[]
         the_client = User.query.filter_by(id=session['user_id']).first()
-        favorites_list = [favorite.to_dict(only=('id', 'username', 'avatar_url')) for favorite in the_client.favorites if favorite.active_recently()]
+        favorites_list = [favorite.to_dict(only=('id', 'username', 'avatar_url')) for favorite in the_client.favorited_users if favorite.active_recently]
         
         return make_response(favorites_list, 200)
     def post(self):
-        #Creates a Favorite obj attached to clients id and another user. User.favorites.append(User)
+        #Creates a Favorite obj attached to clients id and another user. User.favorited_users.append(User)
         # For Profile Component - handleAddFavorite()
-        data = request.json()
+        data = request.get_json()
         the_client = User.query.filter_by(id=session['user_id']).first()
-        favorite_user = User.query.filter_by(id=data['fav_user_id']).first()
-        the_client.favorites.append(favorite_user)
+        favorite_user = User.query.filter_by(id=data['userId']).first()
+        the_client.favorited_users.append(favorite_user)
         db.session.commit()
         return make_response(favorite_user.to_dict(only=('username', 'id')), 201)
         
     def delete(self):
-        #Deletes Favorite Obj connected to client. User.favorites.pop(User)
+        #Deletes Favorite Obj connected to client. User.favorited_users.pop(User)
         # For Profile Component  - handleRemoveFavorite()
         data = request.json()
         the_client = User.query.filter_by(id=session['user_id']).first()
         favorite_user = User.query.filter_by(id=data['fav_user_id']).first()
-        the_client.favorites.remove(favorite_user)
+        the_client.favorited_users.remove(favorite_user)
         db.session.commit()
         return make_response({'message': 'success'}, 204)
 api.add_resource(Favorites, '/api/favorites')
@@ -87,12 +258,31 @@ class Suggest_Matches(Resource):
     def get(self):
         #Returns a list of 5 users who match well with the client
         # For Home/SuggestedMatches Component - useEffect[]
-        suggested_matches = User.query.filter_by(id=session['user_id']).filter(
-            or_(
-                not_(User.match_one.any(Match.user_one_liked==True, Match.user_one_liked==False)),
-                not_(User.match_two.any(Match.user_two_liked==True, Match.user_two_liked==False))
+        the_client = User.query.filter_by(id=session['user_id']).first()
+
+        gender = the_client.gender
+        orientation = the_client.orientation
+
+        # Checking Orientation and gender. I'm gonna need a better way to do this. 
+        if (gender == 'Male' and orientation == 'Straight') or (gender == 'Female' and orientation == 'Gay'):
+            interested_in = 'Female'
+        elif (gender == 'Male' and orientation == 'Gay') or (gender == 'Female' and orientation == 'Straight'):
+            interested_in = 'Male'
+        else:
+            interested_in = 'Other'
+
+
+        # Get the ids of the users that current user has already liked or disliked.
+        already_responded_users = Match.query.with_entities(Match.user_two_id).filter(
+            and_(Match.user_one_id == the_client.id, Match.user_one_liked!= None)
+        ).union(
+            Match.query.with_entities(Match.user_one_id).filter(
+            and_(Match.user_two_id ==the_client.id, Match.user_two_liked!= None)
             )
-        ).limit(5).all()
+        )
+
+        # Get the users who are not in the list of already responded users.
+        suggested_matches = User.query.filter(User.id.notin_(already_responded_users)).filter(User.id != session['user_id']).filter_by(gender= interested_in).limit(5).all()
         
         if suggested_matches:
             suggested_list = [user.to_dict(only=('username', 'id', 'avatar_url')) for user in suggested_matches]
@@ -107,12 +297,23 @@ class User_Profiles(Resource):
         # For Profile & Settings Comp - useEffect[]
         #If not Your profile it creates or updates Visitor obj
         the_user = User.query.filter_by(id=user_id).first()
+        the_client = User.query.filter_by(id=session['user_id']).first()
         my_profile = False
 
         if user_id == session['user_id']:
             my_profile = True
+        else:
+            new_visitor = Visitor.query.filter_by(user_id=user_id).filter_by(visitor_id=session['user_id']).first()
+            if not new_visitor:
+                new_visitor = Visitor(user_id=user_id, visitor_id=session['user_id'])
+            else:
+                new_visitor.last_visit= datetime.utcnow()
+                new_visitor.seen=False
+            db.session.add(new_visitor)
+            db.session.commit()
 
-        profile_info = the_user.to_dict(rules=('-email', '-last_request'))
+        distance = int(calculate_distance(lat1=the_user.latitude, lon1=the_user.longitude, lat2=the_client.latitude, lon2=the_client.longitude))
+        profile_info = {**the_user.to_dict(rules=('-email', '-last_request', 'age', 'last_online')), 'distance':distance}
         return make_response({'profile_info': profile_info, 'my_profile':my_profile }, 200)
     
     def patch(self, user_id):
@@ -121,8 +322,8 @@ class User_Profiles(Resource):
         ########### NEED TO ADD S3 FUNCTIONALITY ############################
         data = request.get_json()
         the_client = User.query.filter_by(id=user_id).first()
-
-        if user_id == session['client_id']:
+    
+        if session['client_id']:
             for attr in data.keys():
                 setattr(the_client, attr, data[attr])
             db.session.add(the_client)
@@ -134,9 +335,11 @@ class User_Profiles(Resource):
     def delete(self, user_id):
         #Delete's the Client's Account. Must check that client id matches user_id
         # For Settings Component - handleDeleteAccount()
+        
         the_client = User.query.filter_by(id=user_id).first()
 
-        if user_id == session['user_id']:
+        if  session['user_id']:
+            user_id = session['user_id']
             db.session.query(favorites).filter_by(user_id=user_id).delete()
             db.session.query(favorites).filter_by(favorited_id=user_id).delete()
             session['user_id'] = None
@@ -200,6 +403,7 @@ class User_Pets(Resource):
     def post(self, user_id):
         #Adds a new Pet Obj for Client where Pet.user_id is user_id. Must check that user_id matches Client id
         # FOR CreatePet component - handleAddPet()
+        # THis is gonna need Image s3 Stuff ################################# !!!!!!!!!!!!!!!!!!!!!
         data = request.get_json()
         if user_id == session['user_id']:
             try:
@@ -305,12 +509,34 @@ class Quick_Match(Resource):
     def get(self):
         #Returns a list of 20 profiles(user.id, avatar_url, username) that client hasn't already liked/passed on. So client to like or pass on
         # For Match/QuickMatch component - useEffect[moreMatches]
-        potential_matches = User.query.filter_by(id=session['user_id']).filter(
-            or_(
-                not_(User.match_one.any(Match.user_one_liked==True, Match.user_one_liked==False)),
-                not_(User.match_two.any(Match.user_two_liked==True, Match.user_two_liked==False))
+
+        the_client = User.query.filter_by(id=session['user_id']).first()
+
+        gender = the_client.gender
+        orientation = the_client.orientation
+
+        # Checking Orientation and gender. I'm gonna need a better way to do this. 
+        if (gender == 'Male' and orientation == 'Straight') or (gender == 'Female' and orientation == 'Gay'):
+            interested_in = 'Female'
+        elif (gender == 'Male' and orientation == 'Gay') or (gender == 'Female' and orientation == 'Straight'):
+            interested_in = 'Male'
+        else:
+            interested_in = 'Other'
+
+
+        # Get the ids of the users that current user has already liked or disliked.
+        already_responded_users = Match.query.with_entities(Match.user_two_id).filter(
+            and_(Match.user_one_id == the_client.id, Match.user_one_liked!= None)
+        ).union(
+            Match.query.with_entities(Match.user_one_id).filter(
+            and_(Match.user_two_id ==the_client.id, Match.user_two_liked!= None)
             )
-        ).limit(20).all()
+        )
+
+        # Get the users who are not in the list of already responded users.
+        potential_matches = User.query.filter(User.id.notin_(already_responded_users)).filter(User.id != session['user_id']).filter_by(gender= interested_in).limit(20).all()
+
+
         if potential_matches:
             potential_dict_list = [suitor.to_dict(only=('username', 'id', 'avatar_url', 'photos')) for suitor in potential_matches]
             return make_response(potential_dict_list, 200)
@@ -370,10 +596,17 @@ class Visitors(Resource):
     def get(self):
         #Return a list of the last 20 users that visted the Client's Profile and the time they visited.
         # For Match/Visitors component = useEffect[]
-        visitor_list = Visitor.query.filter_by(user_id=session['user_id']).limit(20).all()
+        visitor_list = Visitor.query.filter_by(user_id=session['user_id']).order_by(desc(Visitor.last_visit)).limit(20).all()
+     
+        visitors_dict_list= []
         if visitor_list:
-            visitors_dict = [{**visitor.to_dict() **visitor.visitor.to_dict(only=('username', 'avatar_url'))} for visitor in visitor_list]
-            return make_response(visitors_dict, 200)
+            for visitor in visitor_list:
+                visitors_dict = {**visitor.to_dict(), **visitor.visitor.to_dict(only=('username', 'avatar_url'))}
+                visitors_dict_list.append(visitors_dict)
+                visitor.seen = True
+                db.session.add(visitor)
+                db.session.commit()
+            return make_response(visitors_dict_list, 200)
         return make_response({'error':'Not Found'}, 400)
 api.add_resource(Visitors, '/api/visitors')
 
@@ -383,8 +616,13 @@ class Conversations(Resource):
         #May need to mess aroudn with websockets. 
         # For Conversation component - useEffect[]
         the_client = User.query.filter_by(id=session['user_id']).first()
+        convos = the_client.conversations
         convo_list = []
-        for convo in the_client.conversations:
+
+        if convos:
+            first_convo_id = convos[0].id
+            first_convo_mes = convos[0].to_dict(only=('messages',))
+        for convo in convos:
             if convo.user_one_id == the_client.id:
                 other_user = User.query.filter_by(id=convo.user_two_id).first()
                 seen = {'seen': convo.user_one_seen}
@@ -393,7 +631,7 @@ class Conversations(Resource):
                 seen = {'seen': convo.user_two_seen}
             convo_list.append({**convo.to_dict(),**seen, **other_user.to_dict(only=('avatar_url', 'username'))})
         
-        return make_response(convo_list, 200)
+        return make_response({'convo_id': first_convo_id, 'messages': first_convo_mes, 'list':convo_list}, 200)
     
     def post(self):
         #Passes user_id in post body. Check if a Converation obj for the client and user_id already exists if it does then update the updated_at time. otherwise create Obj

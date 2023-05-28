@@ -3,6 +3,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime, timedelta
 from sqlalchemy.orm import validates
 from config import db, bcrypt, CheckConstraint, or_
+from dateutil.relativedelta import relativedelta
 
 # Models go here!
 
@@ -54,32 +55,48 @@ class Match(db.Model, SerializerMixin):
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
-    serialize_rules= ('-favorites','-favorited_by', '-visitors','-visited', '-conversations', '-messages', '-pets')
+    serialize_rules= ('-favorited_users', '-visitors','-visited', '-conversations', '-messages', '-pets')
     
 
     id = db.Column(db.Integer, primary_key=True)
+    auth_sub = db.Column(db.String, unique=True, nullable=False)
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     avatar_url = db.Column(db.String)
-    bio = db.Column(db.String)
+    birthdate= db.Column(db.DateTime)
+    bio = db.Column(db.Text, default="Edit Profile To Fill In....")
+    city= db.Column(db.String)
+    state=db.Column(db.String)
+    zipcode = db.Column(db.String(10))
+    latitude= db.Column(db.Float)
+    longitude = db.Column(db.Float)
+    gender= db.Column(db.String)
+    orientation = db.Column(db.String)
+    ethnicity= db.Column(db.String)
+    status= db.Column(db.String)
+    pets= db.Column(db.Integer)
+    height= db.Column(db.String)
+    diet= db.Column(db.String)
+    religion= db.Column(db.String)
     last_request = db.Column(db.DateTime, default=datetime.utcnow)
 
     #Do I need a backref in favorites. Since a user should never know who favorited them
     #possibly to do a cascade delete, but not sure if cascadeeletes workon association tables
-    favorites= db.relationship('User',
+    favorited_users= db.relationship('User',
+                            secondary=favorites,
                             primaryjoin=(favorites.c.favorited_id ==id),
                             secondaryjoin=(favorites.c.user_id==id),
                             cascade="all, delete")
     
     visitors= db.relationship('Visitor',
-                              foreign_keys=["Visitor.user_id"],
+                              foreign_keys="Visitor.user_id",
                               order_by="desc(Visitor.last_visit)",
                               backref='visited',
                               cascade="all, delete, delete-orphan"
                               )
     
     visited= db.relationship('Visitor',
-                            foreign_keys=["Visitor.visitor_id"],
+                            foreign_keys="Visitor.visitor_id",
                             order_by="desc(Visitor.last_visit)",
                             backref='visitor',
                             cascade="all, delete, delete-orphan"
@@ -92,12 +109,12 @@ class User(db.Model, SerializerMixin):
                                     order_by="desc(Conversation.updated_at)"
                                     )
     match_one = db.relationship("Match",
-                                foreign_keys=['Match.user_one_id'],
+                                foreign_keys='Match.user_one_id',
                                 backref= "user_one",
                                 cascade="all, delete, delete-orphan"
     )
     match_two = db.relationship("Match",
-                                foreign_keys=['Match.user_two_id'],
+                                foreign_keys='Match.user_two_id',
                                 backref= 'user_two',
                                 cascade="all, delete, delete-orphan"
     )
@@ -124,7 +141,20 @@ class User(db.Model, SerializerMixin):
             return True
         else:
             return False
-          
+        
+    @hybrid_property
+    def last_online(self):
+        now = datetime.now()
+        difference = relativedelta(now, self.last_request)
+        print(difference.days)
+        return difference.days
+    
+    @hybrid_property
+    def age(self):
+        now = datetime.now()
+        difference = relativedelta(now, self.birthdate)
+        return difference.years
+
     
 
 
@@ -150,6 +180,7 @@ class Pet(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
+    description = db.Column(db.Text, default="Edit Profile To Fill In....")
     avatar_url = db.Column(db.String)
     animal= db.Column(db.String)
     breed= db.Column(db.String)

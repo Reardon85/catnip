@@ -1,3 +1,404 @@
+
 body {
-    background-color: rgb(255, 255, 255);
+    display: flex;
+    flex-direction: column;
+
+    background: white;
+}
+
+.site {
+
+    padding-left: 15%;
+    padding-right: 15%;
+    
+    background-color: #b0afaa;
+
+}
+
+  
+
+
+.container-fluid {
+    width: 70%;
+    height: 100vh;
+    padding-top: 5vh;
+    border: 1px solid black;
+    margin: auto;
+    position: relative;
+    box-sizing: border-box;
+    background-color: #a9cfd4;
+  
+}
+
+.container {
+  padding-top: 5vh;
+  max-width: 10vw;
+
+}
+
+.navbar {
+    padding-top: 20px;
+}
+
+  .profile-pic {
+    width: 25vh;
+  }
+
+  h4 {
+    margin-top: 0;
+    margin-bottom: 0.5em; /* You can adjust the value as needed */
+}
+
+
+.upload-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 85vh;
+    width: 600px;
+    background-color: #f5f5f5;
+    border-radius: 20px;
+    box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
+    margin: auto;
+    margin-top: 5%;
+
+}
+
+.preview-image {
+    max-height: 20vh;
+    width: auto; /* maintain aspect ratio */
+  }
+
+.upload-container h1 {
+    font-size: 2rem;
+    margin: 0 0 20px 0;
+    color: #444;
+}
+
+.upload-container input[type="file"] {
+    margin: 0 0 20px 0;
+}
+
+.upload-container button {
+    background-color: #7ea6cd;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.upload-container button:hover {
+    background-color: #4194c7;
+}
+
+.upload-container input {
+    margin: 0 0 20px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: .8rem;
+    width: 80%;
+    box-sizing: border-box;
+}
+
+.upload-container input[type="text"]:focus {
+    outline: none;
+    border-color: #d5ffc6;
+    box-shadow: 0px 0px 5px 0px rgba(1, 144, 68, 0.197);
+}
+
+.conversation-div {
+    margin-top: 10px;
+    min-width: 30vh;
+    min-height: 8vh;
+    display: flex;
+    align-items: center;
+    text-align: left;
+  }
+  
+  .user-convo-photo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 15px;
+    object-fit: cover;
+    
+  }
+
+  .btn-group {width:100%;}
+
+  /* .thumb img {
+    margin-bottom: 10px;
+    
+    width: 10vw !important;
+    height: 10vh !important;
+    object-fit:contain;
+    object-position: center center;
+}
+*/
+.item img{
+  width: 20vw;
+  height: 30vh;
+  object-fit:cover;
+  object-position: center;
+}
+
+.user-photo img{
+
+  object-fit: cover;
+  object-position: center center;
+} 
+
+.test {
+  max-height: 45vh;
+  max-width: 45vw;
+}
+
+
+
+/* comment_form  */
+
+.com-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.com-input {
+  height: 100px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.com-submit-btn {
+  align-self: flex-end;
+  padding: 5px 10px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.com-submit-btn:hover {
+  background-color: #0056b3;
+}
+
+
+.com-btn {
+  margin: 1rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: .8em;
+  text-transform: uppercase;
+  padding: 0.6em 1.2em;
+  background-color: #e4ebd5;
+  color: #97b175;
+  box-shadow: 0 8px 24px 0 rgb(255 235 167 / 20%);
+  transition: all .3s ease-in-out;
+}
+
+.com-btn-link {
+  color: #f5f5f5;
+  display: block;
+  font-size: .75em;
+  transition: color .3s ease-out;
+}
+
+/*Hover & focus*/
+.field input:focus::placeholder {
+  opacity: 0;
+  transition: opacity .3s;
+}
+
+.com-btn:hover {
+  background-color: #8dca8a;
+  color: #fcf7e6;
+  box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
+}
+
+.com-btn-link:hover {
+  color: #ffeba7;
+}
+
+
+
+.com-btn1 {
+  margin: 1rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: .8em;
+  text-transform: uppercase;
+  padding: 0.6em 1.2em;
+  background-color: #929292ab;
+  color: #e4e9de;
+  box-shadow: 0 8px 24px 0 rgb(255 235 167 / 20%);
+  transition: all .3s ease-in-out;
+}
+
+.com-btn1-link {
+  color: #f5f5f5;
+  display: block;
+  font-size: .75em;
+  transition: color .3s ease-out;
+}
+
+/*Hover & focus*/
+.field input:focus::placeholder {
+  opacity: 0;
+  transition: opacity .3s;
+}
+
+.com-btn1:hover {
+  background-color: #8dca8a;
+  color: #fcf7e6;
+  box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
+}
+
+.com-btn1-link:hover {
+  color: #ffeba7;
+}
+
+.message {
+  font-size: 15px;
+  color: #5c6649;
+}
+
+/* 
+comments  */
+
+.comment {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #fefffdba;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+}
+
+.profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
+}
+
+.comment-author {
+  margin: 0;
+  font-size: 1.2em;
+  color: #5c6649;
+  ;
+}
+
+.comment-text {
+  margin: 5px 0;
+}
+
+.comment-timestamp {
+  margin: 0;
+  font-size: 0.8em;
+  color: #777;
+}
+
+/* message center */
+
+.discussion-container {
+  flex-wrap: nowrap;
+  display: flex;
+
+  justify-content: space-between;
+  gap: 20px;
+  /* Adjust this value for the desired space between the post card and the comment form */
+}
+
+
+
+
+.discussion-card {
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  height: 90vh;
+  flex-basis: 40%;
+  min-width: 40vh;
+  max-width: 0px;
+  width: 0px;
+
+  text-align: center;
+  border: 1px solid #ccccccf0;
+  padding: 20px;
+  background-color: #fff;
+  margin-left: 25%;
+  max-height: 800px;
+  margin-top: 70px;
+
+}
+
+
+.message-form-container {
+  flex-basis: 60%;
+  /* Adjust this value for the desired width of the comment form */
+  min-width: 400px;
+
+
+  background-color: #c5ddba;
+  border-radius: 4px;
+  padding: 40px;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.243);
+  max-height: 90vh;
+  max-width: 80vh;
+  margin-right: 5%;
+  /* border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px; */
+  margin-top: 70px;
+  overflow-y: auto
+      /* slide in animation */
+  ;
+}
+
+.conversation-div {
+  margin-top: 10px;
+  min-width: 30vh;
+  min-height: 8vh;
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
+
+.user-convo-photo {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 15px;
+  object-fit: cover;
+}
+
+.conversation-div-unseen {
+  margin-top: 10px;
+  min-width: 30vh;
+  min-height: 8vh;
+  border-top-right-radius: 20%;
+  border-bottom-right-radius: 20%;
+  background-color: #97b175;
+  font-weight: 600;
+  text-align: left;
+  display: flex;
+  align-items:center;
+
+
+  
 }
