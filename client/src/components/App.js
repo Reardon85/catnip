@@ -90,7 +90,7 @@ if (!isAuthenticated){
 }
 
 
-if (newUser===true){
+if (newUser){
     return (
         <div className="site">
             <Container fluid className="px-md-5">

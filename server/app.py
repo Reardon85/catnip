@@ -614,7 +614,19 @@ class Quick_Match(Resource):
 
         for i in range(len(preferences)):
             
-            return 
+            if attribute[i] == 'age_range':
+                min, max = preferences[i].split(',')
+                min_age = datetime.now -  timedelta(days= 365.25*int(min))
+                max_age = datetime.now - timedelta(days=365.25*int(max))
+                query = query.filter(and_(User.birthdate >= min_age, User.birthdate <= max_age))
+            elif attribute[i] == 'distance':
+                
+                query = query.filter(db.func.earth_distance(
+                    db.func.ll_to_earth(the_client.latitude, the_client.longitude),
+                    db.func.ll_to_earth(User.latitude, User.longitude)
+                    ) <= (int(preferences[i])*1600))
+            elif not preferences[i] == "NA":
+                query = query.filter()
 
 
         # Checking Orientation and gender. I'm gonna need a better way to do this. 
@@ -636,7 +648,7 @@ class Quick_Match(Resource):
         )
 
         # Get the users who are not in the list of already responded users.
-        potential_matches = User.query.filter(User.id.notin_(already_responded_users)).filter(User.id != session['user_id']).filter_by(gender= interested_in).limit(20).all()
+        potential_matches = query.filter(User.id.notin_(already_responded_users)).filter(User.id != session['user_id']).all()
 
 
         if potential_matches:
