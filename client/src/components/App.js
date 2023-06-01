@@ -77,7 +77,7 @@ function App() {
 
 
 
-if(isLoading || !user){
+if(isLoading ){
     return (
         <div className="site">
             <Container fluid className="px-md-5">
