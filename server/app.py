@@ -616,9 +616,9 @@ class Quick_Match(Resource):
             
             if attribute[i] == 'age_range':
                 min, max = preferences[i].split(',')
-                min_age = datetime.now -  timedelta(days= 365.25*int(min))
-                max_age = datetime.now - timedelta(days=365.25*int(max))
-                query = query.filter(and_(User.birthdate >= min_age, User.birthdate <= max_age))
+                min_age = datetime.now() -  timedelta(days= 365.25*int(min))
+                max_age = datetime.now() - timedelta(days=365.25*int(max))
+                query = query.filter(and_(User.birthdate <= min_age, User.birthdate >= max_age))
             elif attribute[i] == 'distance':
                 
                 query = query.filter(db.func.earth_distance(
