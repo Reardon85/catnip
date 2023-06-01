@@ -77,15 +77,15 @@ function App() {
 
 
 
-if(isLoading || !user){
-    return (
-        <div className="site">
-            <Container fluid className="px-md-5">
+// if(isLoading || !user){
+//     return (
+//         <div className="site">
+//             <Container fluid className="px-md-5">
                 
-            </Container>
-        </div>
-    )
-  }
+//             </Container>
+//         </div>
+//     )
+//   }
 
 if (!isAuthenticated){
     return (
