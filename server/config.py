@@ -13,6 +13,7 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData, desc, asc, CheckConstraint, or_, and_, not_
 
+
 # Local imports
 
 # Instantiate app, set attributes
@@ -30,6 +31,7 @@ app.config['AUTH0_DOMAIN'] = 'YOUR_AUTH0_DOMAIN'
 app.config['AUTH0_CLIENT_ID'] = 'YOUR_AUTH0_CLIENT_ID'
 app.config['AUTH0_CLIENT_SECRET'] = 'YOUR_AUTH0_CLIENT_SECRET'
 app.config['AUTH0_CALLBACK_URL'] = 'YOUR_AUTH0_CALLBACK_URL'
+
 
 app.json.compact = False
 

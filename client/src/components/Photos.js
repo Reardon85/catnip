@@ -7,7 +7,9 @@ import { Container} from 'react-bootstrap';
 const Photos = () => {
 
     const [photoList, setPhotoList] = useState([])
+    const [currentPhoto, setCurrentPhoto] = useState(null)
     const {userId} = useParams()
+
   
     useEffect(() => {
         //User_Photos - get
@@ -20,44 +22,48 @@ const Photos = () => {
             })
             .then((data) => {
                 setPhotoList(data);
+                setCurrentPhoto((currentPhoto) => data[0].id)
+
             })
             .catch((err) => {
                 console.log(err);
             })
     }, [userId]);
   
-    const handleRemoveImage = (id) => {
-
-        fetch(`/api/photo/${id}`, {
-            method: 'DELETE',     
-        })
-        .then((r) => {
-            if (!r.ok){
-                r.json().then((err) => {throw new Error(err)})
-            }
-            return r.json()
-        })
-        .then((data) => {
-            //add code to remove image from array
-        })
-        .catch((err) =>{
-            console.log(err);
-        })
+    const handleRemoveImage = () => {
+        console.log(currentPhoto)
+        // fetch(`/api/photo/${currentPhoto}`, {
+        //     method: 'DELETE',     
+        // })
+        // .then((r) => {
+        //     if (!r.ok){
+        //         r.json().then((err) => {throw new Error(err)})
+        //     }
+        //     return r.json()
+        // })
+        // .then((data) => {
+        //     //add code to remove image from array
+        // })
+        // .catch((err) =>{
+        //     console.log(err);
+        // })
     }
 
 
     const photoArray = photoList.map((photo, i) => (
-        <div className='test'>
+        <div key={photo.id} className='test'>
             <img alt="" src={photo.image_url} className='user-photo' />
-            <p className="legend">photo.description</p>
-            <button onClick={() => handleRemoveImage(photo.id)} className="btn btn-danger">Remove</button>
+            <p className="legend">{photo.description}</p>
+            
+           
         </div>
     ))
 
     return (
         <div>
         <Container>
-        <PhotoCarousel photoArray={photoArray}/>
+        <PhotoCarousel photoArray={photoArray} setCurrentPhoto={setCurrentPhoto}/>
+        <button onClick={() => handleRemoveImage()} className="btn btn-danger">Remove</button>
         </Container>
         </div>
     );

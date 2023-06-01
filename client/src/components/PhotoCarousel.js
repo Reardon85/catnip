@@ -14,7 +14,9 @@ const images = ['https://the-tea.s3.us-east-2.amazonaws.com/image1.jpg',
 
 
 
-const PhotoCarousel = () => {
+const PhotoCarousel = ({photoArray, setCurrentPhoto}) => {
+
+    
 
     const getConfigurableProps = () => ({
         showArrows: false,
@@ -40,8 +42,10 @@ const PhotoCarousel = () => {
 
     return (
 
-        <Carousel  {...getConfigurableProps()} swipeable={false}>
+        <Carousel  {...getConfigurableProps()}  onClickThumb={(number)=>setCurrentPhoto((currentPhoto)=> number)} swipeable={false}>
 
+            {photoArray}
+{/* 
         <div className='test'>
             <img alt="" src={images[0]} className='user-photo' />
             <p className="legend">Legend 1</p>
@@ -65,7 +69,7 @@ const PhotoCarousel = () => {
         <div className='test'>
             <img alt="" src={images[4]} className='user-photo' />
             <p className="legend">Legend 1</p>
-        </div>
+        </div> */}
 
        
 

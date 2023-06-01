@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Message from './Message';
+import Messages from './Messages';
+
 
 
 const MessageForm = ({ convoId }) => {
@@ -10,28 +11,42 @@ const MessageForm = ({ convoId }) => {
 
   useEffect(() => {
 
-    fetch(`/message/${convoId}`)
+
+    
+
+    // socket.on('receive_message', data => {
+    //   console.log("the socket worked")
+    //   console.log(data)
+    //   setMessageList(prevMessages =>  prevMessages.concat(data));
+    // });
+
+   
+    // socket.emit('join', convoId);
+
+    fetch(`api/messages/${convoId}`)
       .then((r) => r.json())
       .then((d) => setMessageList(d))
 
-
+    // return () => socket.off("message");
   }, [convoId])
   
 
   const comment_array = messageList.map((c) => {
-    return <Message key={c.id} username={c.username} avatar={c.avatar_url} timestamp={c.created_at} content={c.text} userId={c.user_id} />
+    return <Messages key={c.id} username={c.username} avatar={c.avatar_url} timestamp={c.created_at} content={c.text} userId={c.user_id} />
   })
 
   const handleSubmit = (event) => {
     event.preventDefault();
     // Here you would handle the comment submission, for instance, by calling an API endpoint.
+    // socket.emit('send_message', { convoId:'uNhMcQatcz11xS7DAAAF', message }); 
+    
     
     const message_info = {
       convoId: convoId,
       text: message,
     }
 
-    fetch(`/message/${convoId}`, {
+    fetch(`api/messages/${convoId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

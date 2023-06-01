@@ -36,25 +36,30 @@ const SuggestMatch = () => {
     fetch('/api/suggested-matches')
         .then((r) => {
             if(!r.ok){
-                r.json().then((data) => {throw new Error(data.error)})
+                throw new Error(r.Error)
             }
             return r.json()
         })
         .then((data) => {
+            
             setSuggestMatches(data)
         })
         .catch((err) => { 
-            console.log(err)
+            
         })
 
   },[])
 
   const items = suggestMatches.map((item) => {
     return (
+      
         <div className="item" data-value={item.id}>
+          <Link to={`/profile/${item.id}`} >
             <img src={item.avatar_url} alt='potential match'/>
             <p>{item.username}</p>
+          </Link>
         </div>
+        
     )
   })
 

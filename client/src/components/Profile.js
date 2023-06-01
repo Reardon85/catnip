@@ -7,8 +7,8 @@ import Photos from './Photos';
 import Pets from './Pets';
 import PhotoCarousel from './PhotoCarousel';
 
-const Profile = () => {
 
+const Profile = () => {
     const [profileInfo, setProfileInfo] = useState({})
     const [myProfile, setMyProfile] = useState({})
     const [liked, setLiked] = useState(null)
@@ -29,6 +29,7 @@ const Profile = () => {
             .then((data) => {
                 setProfileInfo(data['profile_info'])
                 setMyProfile(data['my_profile'])
+                setFavorited(data['favorite_status'])
                 setLiked(data['liked'])
             })
             .catch((e) => { 
@@ -56,7 +57,7 @@ const Profile = () => {
             return r.json()
         })
         .then((data) => {
-            navigate(`/messages`)
+            navigate("/message")
         })
         .catch((err) => {
             console.log(err)
@@ -79,7 +80,7 @@ const Profile = () => {
         })
         .then(r => {
             if (!r.ok) {
-                r.json().then(d => {throw new Error(d.error)})
+                throw new Error(r.statusText)
             }
             return r.json()
         })
@@ -126,15 +127,15 @@ const Profile = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: json.stringify({
+                body: JSON.stringify({
                     userId: userId
                 })
             }).then(r => {
                 if (!r.ok) {
                     r.json().then(d => {throw new Error(d.error)})
                 }
-                return r.json()
-            }).then(data => setFavorited((favorited) =>!favorited))
+                setFavorited((favorited) =>!favorited)
+            })
         }
     }
 
@@ -150,12 +151,20 @@ const Profile = () => {
         <Col md='auto' >
             <h4>{profileInfo.username}</h4>
             <h6>{profileInfo.age} / {profileInfo.gender} / {profileInfo.city} {profileInfo.state} ({profileInfo.distance} Mi) </h6>
+            <h6> {profileInfo.liked === 'none' ? '' : profileInfo.liked ? 'LIKED!' : 'DISLIKED...'}</h6>
 
         </Col>
         <Col>
+            { myProfile ? 
+            <Stack gap={2} className="col-md-5 mx-auto">
+            <Button variant="secondary" onClick={() => navigate(`/profile/${userId}/settings`)}>Settings</Button>
+            <Button variant="secondary" onClick={() => navigate(`/profile/${userId}/upload-image/`)}>Add Photos</Button>
+            <Button variant="secondary" onClick={() =>navigate(`/profile/${userId}/create-pet`) }>Add Pets</Button>
+            </Stack>
+            :
             <Stack gap={2} className="col-md-5 mx-auto">
                 
-                <Button variant="secondary" onClick={''}>Message</Button>
+                <Button variant="secondary" onClick={handleMessageUser}>Message</Button>
                 <Button variant="outline-secondary" onClick={handleAddFavorite}>Favorite</Button>
                 <DropdownButton  id="dropdown-basic-button" title="Matching">
                     <Dropdown.Item href="#/action-1" onClick={()=> handleJudgement(true)}>Like</Dropdown.Item>
@@ -163,6 +172,7 @@ const Profile = () => {
                 </DropdownButton>
                
             </Stack>
+            }
         </Col>
     </Row>
     <Row className="justify-content-start ml-md-5">
@@ -173,10 +183,10 @@ const Profile = () => {
                     <About profileInfo={profileInfo}/>
                 </Tab>
                 <Tab eventKey="pets" title=" Pets  " className="custom-tab" >
-                    <Pets />
+                    <Pets myProfile={myProfile} />
                 </Tab>
                 <Tab eventKey="photos" title="Photos" className="custom-tab">
-                    <Photos/>
+                    <Photos myProfile={myProfile}/>
                 </Tab>
             </Tabs>
         </Col>
@@ -186,12 +196,12 @@ const Profile = () => {
             <Card.Body>
             
             <ListGroup variant="flush">
-                <ListGroup.Item>Last Online: {profileInfo.last_online ==0 ? 'Today' :`${profileInfo.last_online} days ago`}</ListGroup.Item>
+                <ListGroup.Item>Last Online: {profileInfo.last_online ===0 ? 'Today' :`${profileInfo.last_online} days ago`}</ListGroup.Item>
                 <ListGroup.Item>Orientation: {profileInfo.orientation}</ListGroup.Item>
                 <ListGroup.Item>Ethnicty: {profileInfo.ethnicity}</ListGroup.Item>
                 <ListGroup.Item>Status: {profileInfo.status}</ListGroup.Item>
                 <ListGroup.Item>Pets: {profileInfo.pet}</ListGroup.Item>
-                <ListGroup.Item>Height: {profileInfo.height}</ListGroup.Item>
+                <ListGroup.Item>Height: {`${Math.floor(profileInfo.height/12)}' ${profileInfo.height%12}" `}</ListGroup.Item>
                 <ListGroup.Item>Diet: {profileInfo.diet}</ListGroup.Item>
                 <ListGroup.Item>Religion:  {profileInfo.religion}</ListGroup.Item>
             </ListGroup>

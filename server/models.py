@@ -55,7 +55,7 @@ class Match(db.Model, SerializerMixin):
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
-    serialize_rules= ('-favorited_users', '-visitors','-visited', '-conversations', '-messages', '-pets')
+    serialize_rules= ('-favorited_users', '-visitors','-visited', '-conversations', '-messages', '-pets', '-match_one', '-match_two', '-photos')
     
 
     id = db.Column(db.Integer, primary_key=True)
@@ -64,7 +64,8 @@ class User(db.Model, SerializerMixin):
     email = db.Column(db.String, unique=True, nullable=False)
     avatar_url = db.Column(db.String)
     birthdate= db.Column(db.DateTime)
-    bio = db.Column(db.Text, default="Edit Profile To Fill In....")
+    bio = db.Column(db.Text, default="Edit Profile In Settings To Fill In....")
+    hobbies = db.Column(db.Text, default="Edit Profile in Settings to Fill In....")
     city= db.Column(db.String)
     state=db.Column(db.String)
     zipcode = db.Column(db.String(10))
@@ -78,6 +79,7 @@ class User(db.Model, SerializerMixin):
     height= db.Column(db.String)
     diet= db.Column(db.String)
     religion= db.Column(db.String)
+    interested_in= db.Column(db.String, default='NA/NA/NA/NA/NA/NA/25/18,80')
     last_request = db.Column(db.DateTime, default=datetime.utcnow)
 
     #Do I need a backref in favorites. Since a user should never know who favorited them
@@ -106,7 +108,8 @@ class User(db.Model, SerializerMixin):
     # If its possible to filter it so it'snot only matches where matched is true. it would be good. 
     conversations = db.relationship("Conversation", 
                                     primaryjoin="or_(User.id==Conversation.user_one_id, User.id==Conversation.user_two_id)",
-                                    order_by="desc(Conversation.updated_at)"
+                                    order_by="desc(Conversation.updated_at)",
+                                    cascade="all, delete, delete-orphan"
                                     )
     match_one = db.relationship("Match",
                                 foreign_keys='Match.user_one_id',
@@ -137,25 +140,33 @@ class User(db.Model, SerializerMixin):
     def active_recently(self):
         diff = datetime.utcnow() - self.last_request
 
-        if diff <timedelta(minutes=2):
+        print (diff)
+
+        if diff <timedelta(minutes=60):
             return True
         else:
             return False
         
     @hybrid_property
     def last_online(self):
-        now = datetime.now()
+        now = datetime.utcnow()
+        print(now)
+        print(self.last_request)
         difference = relativedelta(now, self.last_request)
-        print(difference.days)
-        return difference.days
+        total_days = difference.days + (difference.months*30) + difference.years*365.25
+        return total_days
     
     @hybrid_property
     def age(self):
         now = datetime.now()
-        difference = relativedelta(now, self.birthdate)
-        return difference.years
 
-    
+        difference = relativedelta(now, self.birthdate)
+        return int(difference.years)
+        
+
+    @age.expression
+    def age(cls):
+        return func.floor((func.extract('year', func.now()) - func.extract('year', cls.birthdate)))
 
 
 
@@ -206,7 +217,7 @@ class PetPhoto(db.Model, SerializerMixin):
 class Conversation(db.Model, SerializerMixin):
     __tablename__= 'conversations'
 
-    serialize_rules=('-messages')
+    serialize_rules=('-messages',)
 
     id = db.Column(db.Integer, primary_key=True)
     user_one_id= db.Column(db.Integer, db.ForeignKey('users.id'))

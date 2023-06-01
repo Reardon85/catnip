@@ -15,7 +15,9 @@ from dotenv import load_dotenv
 load_dotenv()
 import requests
 from math import radians, sin, cos, sqrt, atan2
-from datetime import datetime
+from datetime import datetime, timedelta
+from random import randint, choice as rc
+# from flask_socketio import SocketIO, emit, join_room
 
 # Local imports
 from config import app, db, api, auth0, or_, and_, not_, desc
@@ -26,6 +28,38 @@ from models import User, Visitor, Match, Photo, Pet, PetPhoto, Conversation, Mes
 AUTH0_DOMAIN = "dev-yxel2dejc2kr1a0k.us.auth0.com"
 API_AUDIENCE = 'https://dev-yxel2dejc2kr1a0k.us.auth0.com/api/v2/'
 ALGORITHMS = ["RS256"]
+
+app.config['SECRET_KEY'] = 'secret!'
+
+# socketio = SocketIO(app, cors_allowed_origins="*")
+
+
+
+# @socketio.on('join')
+# def on_join(data):
+#     username = session['user_id']
+#     room = data
+#     print(room)
+#     print("You are joining the room")
+#     join_room(room)
+    
+
+
+
+# @socketio.on('send_message')
+# def handle_message(data):
+#     sender = User.query.filter_by(id=session['user_id']).first()
+    
+#     room = data['convoId']
+#     message = data['message']
+#     print('message', message)
+#     print(room)
+#     emit('receive_message', {'convo_id': room, 'text': message, 'avatar_url':sender.avatar_url, 'username':sender.username}, room=room)
+
+# @socketio.on('connect')
+# def handle_connect():
+#     # Perform necessary operations when a client connects
+#     join_room('user_room')  # Join a room specific to the user
 
 class AuthError(Exception):
     def __init__(self, error, status_code):
@@ -101,20 +135,22 @@ def add_coordinates(zip_code, the_client):
     url = f'https://maps.googleapis.com/maps/api/geocode/json?address={zip_code}&key={api_key}'
     response = requests.get(url)
     data = response.json()
-
+    print(zip_code)
     coordinates = data['results'][0]['geometry']['location']
     components = data['results'][0]['address_components']
 
     for component in components:
         if 'locality' in component['types']:
             city = component['long_name']
+            the_client.city= city
         if 'administrative_area_level_1' in component['types']:
             state = component['short_name']
 
     the_client.latitude = coordinates['lat']
     the_client.longitude= coordinates['lng']
-    the_client.city= city
+    
     the_client.state=state
+    the_client.zipcode=zip_code
     db.session.add(the_client)
     db.session.commit()
 
@@ -134,7 +170,7 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
     distance = R * c
-    return distance
+    return int(distance)
 
 
 class Login(Resource):
@@ -142,6 +178,8 @@ class Login(Resource):
     def get(self):
         # Returns User Info for Client. May be weird Auth0. 
         # For Login component - [Insert Button Click Function]
+
+        
 
 
         print("It worked")
@@ -192,7 +230,12 @@ class Register(Resource):
             gender=gender, 
             auth_sub=session['sub']
             )
+        first_photo = Photo(image_url=file_url, user_id=the_client.id, description="Profile Photo")
         db.session.add(the_client)
+        db.session.add(first_photo)
+        db.session.commit()
+        first_photo = Photo(image_url=file_url, user_id=the_client.id, description="Profile Photo")
+        db.session.add(first_photo)
         db.session.commit()
         session['user_id'] = the_client.id
         add_coordinates(zipcode, the_client)
@@ -246,11 +289,12 @@ class Favorites(Resource):
     def delete(self):
         #Deletes Favorite Obj connected to client. User.favorited_users.pop(User)
         # For Profile Component  - handleRemoveFavorite()
-        data = request.json()
+        data = request.get_json()
         the_client = User.query.filter_by(id=session['user_id']).first()
-        favorite_user = User.query.filter_by(id=data['fav_user_id']).first()
+        favorite_user = User.query.filter_by(id=data['userId']).first()
         the_client.favorited_users.remove(favorite_user)
         db.session.commit()
+        
         return make_response({'message': 'success'}, 204)
 api.add_resource(Favorites, '/api/favorites')
 
@@ -259,6 +303,7 @@ class Suggest_Matches(Resource):
         #Returns a list of 5 users who match well with the client
         # For Home/SuggestedMatches Component - useEffect[]
         the_client = User.query.filter_by(id=session['user_id']).first()
+        
 
         gender = the_client.gender
         orientation = the_client.orientation
@@ -287,7 +332,7 @@ class Suggest_Matches(Resource):
         if suggested_matches:
             suggested_list = [user.to_dict(only=('username', 'id', 'avatar_url')) for user in suggested_matches]
             return make_response(suggested_list, 200)
-        return make_response({'error':'Not Found'}, 400)
+        return make_response({'error':'Not Found'}, 404)
 api.add_resource(Suggest_Matches, '/api/suggested-matches')
 
 
@@ -299,11 +344,42 @@ class User_Profiles(Resource):
         the_user = User.query.filter_by(id=user_id).first()
         the_client = User.query.filter_by(id=session['user_id']).first()
         my_profile = False
+        favorite_status = False
+        liked = 'none'
+        
+
+        if not the_user:
+            return make_response({'error':"Not Found"}, 404)
+
+        the_client.update_activity()
+        db.session.add(the_client)
+        db.session.commit()
 
         if user_id == session['user_id']:
             my_profile = True
+            
+            
+
         else:
+            if [True for status in the_client.favorited_users if the_user.id == status.id  ]:
+                favorite_status = True
+            print(favorite_status)
             new_visitor = Visitor.query.filter_by(user_id=user_id).filter_by(visitor_id=session['user_id']).first()
+            
+            if user_id > the_client.id:
+                the_match = [match for match in the_client.match_two if (match.user_one_id == user_id)] 
+                if the_match:
+                    if the_match.user_two_liked == True:
+                        liked = True
+                    elif the_match.user_two_liked == False:
+                        liked = False
+            else:
+                the_match = [match for match in the_client.match_one if match.user_two_id == user_id]
+                if the_match: 
+                    if the_match.user_one_liked == True:
+                        liked = True
+                    elif the_match.user_one_liked == False:
+                        liked = False
             if not new_visitor:
                 new_visitor = Visitor(user_id=user_id, visitor_id=session['user_id'])
             else:
@@ -313,19 +389,31 @@ class User_Profiles(Resource):
             db.session.commit()
 
         distance = int(calculate_distance(lat1=the_user.latitude, lon1=the_user.longitude, lat2=the_client.latitude, lon2=the_client.longitude))
-        profile_info = {**the_user.to_dict(rules=('-email', '-last_request', 'age', 'last_online')), 'distance':distance}
-        return make_response({'profile_info': profile_info, 'my_profile':my_profile }, 200)
+        profile_info = {**the_user.to_dict(rules=('-email', '-last_request', 'age', 'last_online')), 'distance':distance, 'liked':liked}
+        return make_response({'profile_info': profile_info, 'my_profile':my_profile, 'favorite_status':favorite_status }, 200)
     
     def patch(self, user_id):
         #Edits clients personal User obj. Must Check if client Id matches user_id
         # For Settings Component - handleUpdateAccount()
         ########### NEED TO ADD S3 FUNCTIONALITY ############################
-        data = request.get_json()
+        data = request.values
+        print(data.keys())
         the_client = User.query.filter_by(id=user_id).first()
+
+        if request.files.get('image'):
+            file = request.files['image']
+            s3 = boto3.resource('s3',aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
+            bucket = s3.Bucket('the-tea')
+            bucket.put_object(Key=file.filename, Body=file)
+            the_client.avatar_url = f"https://{bucket.name}.s3.amazonaws.com/{file.filename}"
     
-        if session['client_id']:
+        if session['user_id']:
             for attr in data.keys():
-                setattr(the_client, attr, data[attr])
+                if attr == 'zipcode':
+                    add_coordinates(data[attr], the_client)
+                else:
+                    setattr(the_client, attr, data[attr])
             db.session.add(the_client)
             db.session.commit()
             return make_response(the_client.to_dict(), 201)
@@ -356,6 +444,7 @@ class User_Photos(Resource):
         #Returns the 6 photos for a User with user_id. 
         #For Profile/Photos component - useEffect[]
         Photo_list = Photo.query.filter_by(user_id=user_id).limit(6).all()
+        print(Photo_list)
         photo_dict_list = [photo.to_dict() for photo in Photo_list]
         return make_response(photo_dict_list, 200)
     
@@ -396,7 +485,7 @@ class User_Pets(Resource):
         # For User/Pets component - useEffect[]
         pet_list = Pet.query.filter_by(user_id=user_id).all()
         if pet_list:
-            pet_dict_list = [pet.to_dict for pet in pet_list]
+            pet_dict_list = [pet.to_dict() for pet in pet_list]
             return make_response(pet_dict_list, 200)
         return make_response({'error':'Not Found'}, 404)
 
@@ -404,15 +493,20 @@ class User_Pets(Resource):
         #Adds a new Pet Obj for Client where Pet.user_id is user_id. Must check that user_id matches Client id
         # FOR CreatePet component - handleAddPet()
         # THis is gonna need Image s3 Stuff ################################# !!!!!!!!!!!!!!!!!!!!!
-        data = request.get_json()
+        data = request.values
+        file = request.files['image']
+        s3 = boto3.resource('s3', aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                                    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
+        bucket = s3.Bucket('the-tea')
+        bucket.put_object(Key=file.filename, Body=file)
+        file_url = f"https://{bucket.name}.s3.amazonaws.com/{file.filename}"
         if user_id == session['user_id']:
             try:
                 new_pet = Pet(
                     user_id=user_id, 
                     name=data['name'], 
-                    avatar_url=data['avatar_url'],
+                    avatar_url=file_url,
                     animal=data['animal'],
-                    breed=data['breed'],
                     temperment=data['temperment'],
                     size=data['size'] 
                     )
@@ -550,7 +644,7 @@ class Matches(Resource):
         #Return all all the Users's the Client has Matched with
         # For Match/Matches component - useEffect[]
         the_client_id = session['user_id']
-        match_objs = Match.query.filter(or_(Match.user_one_id==session['user_id'], Match.user_two_id==session['user_id'])).filter(Match.matched == True).limit.all()
+        match_objs = Match.query.filter(or_(Match.user_one_id==session['user_id'], Match.user_two_id==session['user_id'])).filter(Match.matched == True).all()
         user_matched_list = []
         for match in match_objs:
             if match.user_one_id == the_client_id:
@@ -564,7 +658,7 @@ class Matches(Resource):
         #passes user_id in Post body. Checks to see if a Match Obj already exists for the user_id and client id. If not create one and set user_one/two_liked to true.
         # For Profile &  QuickMatch component - handleJudgement()
         data = request.get_json()
-        user_id = data['user_id']
+        user_id = int(data['userId'])
         the_client_id = session['user_id']
         if user_id == the_client_id:
             return make_response({'error':"Unauthorized Action"}, 400)
@@ -638,27 +732,26 @@ class Conversations(Resource):
         # For Profile component - handleMessageUser()
         data = request.get_json()
         the_client_id = session['user_id']
-        other_user_id = data['user_id']
-        try:
-            if the_client_id > other_user_id:
-                user_one_id = the_client_id
-                user_two_id = other_user_id
-            elif the_client_id < other_user_id:
-                user_one_id = other_user_id
-                user_two_id = the_client_id
-            else:
-                return make_response({'error':'user_id can not be the same as client'}, 400)
-            
-            the_convo = Conversation.query.filter_by(user_one_id=user_one_id).filter_by(user_two_id=user_two_id).first()
-            if the_convo:
-                the_convo.updated_timestamp()
-            else:
-                the_convo = Conversation(user_one_id=user_one_id, user_two_id=user_two_id)
-            db.session.add(the_convo)
-            db.session.commit()
-            return make_response(the_convo.to_dict(), 200)
-        except Exception as ex:
-            return make_response({'error':ex.__str__()}, 422)
+        other_user_id = int(data['userId'])
+    
+        if the_client_id > other_user_id:
+            user_one_id = the_client_id
+            user_two_id = other_user_id
+        elif the_client_id < other_user_id:
+            user_one_id = other_user_id
+            user_two_id = the_client_id
+        else:
+            return make_response({'error':'user_id can not be the same as client'}, 400)
+        
+        the_convo = Conversation.query.filter_by(user_one_id=user_one_id).filter_by(user_two_id=user_two_id).first()
+        if the_convo:
+            the_convo.update_timestamp()
+        else:
+            the_convo = Conversation(user_one_id=user_one_id, user_two_id=user_two_id)
+        db.session.add(the_convo)
+        db.session.commit()
+        return make_response(the_convo.to_dict(), 200)
+
 api.add_resource(Conversations, '/api/conversations')
 
 
@@ -666,7 +759,7 @@ class Messages(Resource):
     def get(self, convo_id):
         #Return all the Message obj orded by date where Message.convo_id = convo_id. Make sure that Conversation.user_one/two_id matches client's id
         # For Messages component - useEffect[]
-        convo = Conversation.query.filter_by(id=id).first()
+        convo = Conversation.query.filter_by(id=convo_id).first()
         if session['user_id'] == convo.user_one_id:
             convo.user_one_seen = True
         else:
@@ -685,7 +778,7 @@ class Messages(Resource):
         the_client = User.query.filter_by(id=session['user_id']).first()
         
         try:
-            message = Message(text=data['text'], converation_id=data['convoId'], user_id=session['user_id'])
+            message = Message(text=data['text'], convo_id=data['convoId'], user_id=session['user_id'])
             db.session.add(message)
             db.session.commit()
             the_convo = message.conversation
@@ -704,8 +797,96 @@ api.add_resource(Messages, '/api/messages/<int:convo_id>')
 
 ###### Need to Add Search Routes. 
 
+class AdvancedSearch(Resource):
+    def get(self):
 
+        params = request.args
 
+        the_client = User.query.filter_by(id=session['user_id']).first()
+
+        query = User.query
+        order = False
+        
+        for attr, value in params.items():
+            if attr == 'age':
+                
+                min_age, max_age = map(int, value.split(','))
+                min_date = datetime.now() - timedelta(days=min_age*365.25)
+                max_date = datetime.now() - timedelta(days=max_age*365.25)
+          
+                
+                query = query.filter(and_(User.birthdate<= min_date , User.birthdate>= max_date))
+                
+            
+            elif attr == "distance":
+                
+                
+                print(int(value)*1600)
+                query = query.filter(db.func.earth_distance(
+                    db.func.ll_to_earth(the_client.latitude, the_client.longitude),
+                    db.func.ll_to_earth(User.latitude, User.longitude)
+                    ) <= (int(value)*1600))
+            elif attr=="sort":
+                order=True
+                order_by= value
+            else: 
+                query = query.filter(getattr(User,attr) == value)
+
+        user_list = query.filter( User.id != session['user_id'] ).all()
+        user_dict = [
+            {
+                **user.to_dict(only=('avatar_url', 'id', 'username', 'age', 'gender', 'orientation', 'last_request')), 
+                'distance':calculate_distance(user.latitude, user.longitude, the_client.latitude, the_client.longitude),
+                'match_percentage': match_percentage(the_client=the_client, the_user=user)
+            } 
+            for user in user_list]
+        
+        if order:
+            if order_by == 'match_percentage' or order_by== 'last_request':
+                user_dict = sorted(user_dict, key= lambda x:x.get(order_by), reverse=True)
+            else:
+                user_dict = sorted(user_dict, key= lambda x:x.get(order_by))
+        
+        return make_response(user_dict, 200)
+api.add_resource(AdvancedSearch, '/api/search/')
+
+def match_percentage(the_client, the_user):
+    client_interested = the_client.interested_in.split('/')
+    client_info = [the_client.gender, the_client.ethnicity, the_client.status, the_client.diet, the_client.religion, the_client.orientation, calculate_distance(the_user.latitude, the_user.longitude, the_client.latitude, the_client.longitude), the_client.age]
+    user_interested = the_user.interested_in.split('/')
+    user_info = [the_user.gender, the_user.ethnicity, the_user.status, the_user.diet, the_user.religion, the_user.orientation, calculate_distance(the_user.latitude, the_user.longitude, the_client.latitude, the_client.longitude), the_user.age]
+    total_comparisons = len(client_info)*2 
+    print('client intereset', client_interested)
+    print('user interested', user_interested)
+    match_interest = 0
+
+    for index in range(len(client_interested)):
+        # add a point if client has no preference or if their preference matches with User's info
+        print(index)
+        if index == 7:
+            min, max = client_interested[index].split(',')
+            if user_info[index] >= int(min) and user_info[index] <= int(max):
+                match_interest +=1
+        elif index == 6 and (int(client_interested[index]) >= user_info[index]):
+            match_interest +=1
+        elif client_interested[index] == "NA":
+            match_interest += 1
+        elif client_interested[index] == user_info[index]:
+            match_interest += 1
+        
+        # Saving time on writing another for in loop by doing the same but with the_user's preferences
+        if index == 7:
+            min, max = client_interested[index].split(',')
+            if user_info[index] >= int(min) and user_info[index] <= int(max):
+                match_interest +=1
+        elif index == 6 and (int(client_interested[index]) >= user_info[index]):
+            match_interest +=1
+        elif user_interested[index] == "NA":
+            match_interest += 1
+        elif user_interested[index] == client_info[index]:
+            match_interest += 1
+    print(match_interest)
+    return int((match_interest/total_comparisons)*100)
 
 
 
@@ -727,3 +908,4 @@ def index(id=0):
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
+    

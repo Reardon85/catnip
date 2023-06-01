@@ -21,6 +21,8 @@ python-jose = "*"
 six = "*"
 pyjwt = {extras = ["crypto"], version = "*"}
 requests = "*"
+flask-socketio = "*"
+eventlet = "*"
 
 [dev-packages]
 

@@ -15,7 +15,7 @@ const Pets = () => {
         fetch(`/api/user/pets/${userId}`)
         .then(r => {
             if(!r.ok) {
-                r.json().then(err => {throw new Error(err.message)})
+                console.log(r)
             }
             return r.json()
         }).then(data => {

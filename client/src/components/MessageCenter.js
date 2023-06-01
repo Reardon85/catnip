@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import './styles/app.css';
 import {Link } from "react-router-dom";
-import MessageForm from './components/MessageForm';
+import MessageForm from './MessageForm'
+
 
 const MessageCenter = () => {
 	const [conversations, setConversations] = useState([])
