@@ -77,7 +77,15 @@ function App() {
 
 
 
-  
+if(isLoading || !user){
+    return (
+        <div className="site">
+            <Container fluid className="px-md-5">
+                
+            </Container>
+        </div>
+    )
+  }
 
 if (!isAuthenticated){
     return (
@@ -90,7 +98,7 @@ if (!isAuthenticated){
 }
 
 
-if (newUser){
+if (newUser===true){
     return (
         <div className="site">
             <Container fluid className="px-md-5">
@@ -100,9 +108,7 @@ if (newUser){
     )    
 }
 
-if(isLoading || !user){
-    return <div>Loading...</div>
-  }
+
 
 return (
 <>

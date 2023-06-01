@@ -151,7 +151,7 @@ const Profile = () => {
         <Col md='auto' >
             <h4>{profileInfo.username}</h4>
             <h6>{profileInfo.age} / {profileInfo.gender} / {profileInfo.city} {profileInfo.state} ({profileInfo.distance} Mi) </h6>
-            <h6> {profileInfo.liked === 'none' ? '' : profileInfo.liked ? 'LIKED!' : 'DISLIKED...'}</h6>
+            <h6> {profileInfo.liked === true ? 'LIKED!' : profileInfo.liked === false ?  'DISLIKED...' : ''}</h6>
 
         </Col>
         <Col>
