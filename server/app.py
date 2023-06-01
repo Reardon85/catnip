@@ -608,6 +608,14 @@ class Quick_Match(Resource):
 
         gender = the_client.gender
         orientation = the_client.orientation
+        preferences = the_client.interested_in.split('/')
+        # attribute = ['']
+        query = User.query
+
+        for choice in preferences:
+            return
+
+
 
         # Checking Orientation and gender. I'm gonna need a better way to do this. 
         if (gender == 'Male' and orientation == 'Straight') or (gender == 'Female' and orientation == 'Gay'):
