@@ -609,12 +609,12 @@ class Quick_Match(Resource):
         gender = the_client.gender
         orientation = the_client.orientation
         preferences = the_client.interested_in.split('/')
-        # attribute = ['']
+        attribute = ['gender', 'ethnicity', 'status', 'diet', 'religion', 'orientation', 'distance', 'age_range' ]
         query = User.query
 
-        for choice in preferences:
-            return
-
+        for i in range(len(preferences)):
+            
+            return 
 
 
         # Checking Orientation and gender. I'm gonna need a better way to do this. 
