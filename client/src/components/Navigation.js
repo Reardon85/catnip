@@ -3,9 +3,6 @@ import './styles/app.css';
 import {Link } from "react-router-dom";
 import { Navbar, Nav } from 'react-bootstrap';
 import {Badge } from '@mui/material';
-import io from 'socket.io-client';
-
-const socket = io('http://localhost:5555');
 
 const Navigation = ({user, newMsgs, setNewMsgs, newMatch, setNewMatch}) => {
 
