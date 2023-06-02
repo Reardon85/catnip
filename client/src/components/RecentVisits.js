@@ -1,6 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import './styles/app.css';
 import {Link } from "react-router-dom";
+import { CssBaseline, List, ListItemText, Avatar, ListItemAvatar, ListItem} from "@mui/material";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 const RecentVisits = () => {
 
@@ -23,21 +25,21 @@ const RecentVisits = () => {
   
 
 const visitArray = visitedList.map((visit) => (
-  <div className={'conversation-div'}>
-    <Link to={`/profile/${visit.user_id}`}   style={{ textDecoration: 'none', color: 'inherit' }}>
-    <img src={visit.avatar_url} alt='profile' className='user-convo-photo' />
-    {visit.username}
-    </Link>
-  </div>
+  <ListItem button component={Link} to={`/profile/${visit.user_id}`} key={visit.user_id}>
+    <ListItemAvatar>
+      <Avatar src={visit.avatar_url} />
+    </ListItemAvatar>
+    <ListItemText primary={visit.username} />
+  </ListItem>
 ))
 
-  return (
-    <div>
-      <h5>Recently Visited:</h5>
-      {visitArray}
-    </div>
-
-  );
+return (
+  <List>
+    <ListItem>
+      <ListItemText primary="Recently Visited:" />
+    </ListItem>
+    {visitArray}
+  </List>
+);
 };
-
 export default RecentVisits;

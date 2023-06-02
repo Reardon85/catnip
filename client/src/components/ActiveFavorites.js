@@ -1,9 +1,10 @@
 import React, {useState, useEffect} from 'react';
 import './styles/app.css';
 import {Link } from "react-router-dom";
-import {  Select, MenuItem, FormControl, InputLabel, Box, Button, Slider, Typography, Paper, Badge } from '@mui/material';
+
 import { styled } from '@mui/material/styles';
 import { useSelector } from 'react-redux';
+import { CssBaseline, List, ListItemText, Avatar, ListItemAvatar, ListItem, Badge} from "@mui/material";
 
 const ActiveFavorites = () => {
 
@@ -68,28 +69,24 @@ const ActiveFavorites = () => {
       }));
 
 
-        const favoriteArray = favOnline.map((favorite) => (
-            <Link to={`/profile/${favorite.user_id}`}   style={{ textDecoration: 'none', color: 'inherit' }}>
-                <StyledBadge
-                overlap="circular"
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                variant="dot"
-                >
-                    <img src={favorite.avatar_url} alt='profile pic' className='user-favorite-photo'/> 
-                </StyledBadge>
-            </Link>
-
-    ))
-
-  
-  
-  return (
-    <div>
-      <h5>Curerntly Online Favorites</h5>
-      {favoriteArray}
-    </div>
-
-  );
-};
-
+      const favoriteArray = favOnline.map((favorite) => (
+        <ListItem button component={Link} to={`/profile/${favorite.user_id}`} key={favorite.user_id}>
+          <ListItemAvatar>
+            <StyledBadge overlap="circular" anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} variant="dot">
+              <Avatar src={favorite.avatar_url} />
+            </StyledBadge>
+          </ListItemAvatar>
+          <ListItemText primary={favorite.username} />
+        </ListItem>
+      ))
+    
+      return (
+        <List>
+          <ListItem>
+            <ListItemText primary="Currently Online Favorites" />
+          </ListItem>
+          {favoriteArray}
+        </List>
+      );
+    };
 export default ActiveFavorites;

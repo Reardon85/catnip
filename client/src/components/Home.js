@@ -9,22 +9,31 @@ import {  Select, MenuItem, FormControl, InputLabel, Box, Button, Slider, Typogr
 const Home = () => {
 
   
-  
-  return (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <SuggestMatch />
+    return (
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <SuggestMatch />
+        </Grid>
+        <Grid item xs={1} />
+        <Grid item xs={4}>
+          <Paper elevation={3}>
+            <Box height={1}>
+              <RecentVisits />
+            </Box>
+          </Paper>
+        </Grid>
+        <Grid item xs={1} /> {/* Additional padding */}
+        <Grid item xs={4}>
+          <Paper elevation={3}>
+            <Box height={1}>
+              <ActiveFavorites />
+            </Box>
+          </Paper>
+        </Grid>
+        <Grid item xs={2} /> {/* Additional padding */}
+        <Grid item xs={12} style={{ height: '60px' }} /> {/* Padding/Margin at the bottom */}
       </Grid>
-      <Grid item xs={1} />
-      <Grid  item xs={5}>
-        <RecentVisits />
-      </Grid>
-      <Grid item xs={6}>
-        <ActiveFavorites />
-      </Grid>
-      <Grid item xs={12} style={{ height: '60px' }} /> {/* Padding/Margin at the bottom */}
-    </Grid>
-  );
-};
+    );
+  };
 
 export default Home;
