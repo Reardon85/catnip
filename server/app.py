@@ -270,7 +270,7 @@ def calculate_distance(lat1, lon1, lat2, lon2):
 
 
 class Login(Resource):
-    @requires_auth
+   
     def get(self):
         # Returns User Info for Client. May be weird Auth0. 
         # For Login component - [Insert Button Click Function]
