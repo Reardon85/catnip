@@ -6,10 +6,46 @@ import { Tab, Tabs, Row, Col } from 'react-bootstrap';
 import SettingsBasic from './SettingsBasic';
 import SettingsMyInfo from './SettingsMyInfo';
 import SettingsLookingFor from './SettingsLookingFor';
+import {Snackbar, Button } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 
 const Settings = ({user, setUser}) => {
 
     const {userId} = useParams()
+    const [open, setOpen] = React.useState(false);
+    const [state, setState] = React.useState({
+        open: false,
+        vertical: 'top',
+        horizontal: 'center',
+      });
+      const { vertical, horizontal, openn } = state;
+
+    const handleClick = () => {
+      setOpen(true);
+    };
+  
+    const handleClose = (event, reason) => {
+      if (reason === 'clickaway') {
+        return;
+      }
+  
+      setOpen(false);
+    };
+  
+    const action = (
+      <React.Fragment>
+
+        <IconButton
+          size="small"
+          aria-label="close"
+          color="inherit"
+          onClick={handleClose}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </React.Fragment>
+    );
 
     const handleUpdateAccount = (formData) => {
     // MAKE THIS A A PATCH
@@ -22,10 +58,13 @@ const Settings = ({user, setUser}) => {
             if(!r.ok){
                 throw new Error(r.statusText)
             }
+            
             return r.json()
+            
         })
         .then(data => setUser(()=> data))
         .catch((err) => console.log('error occured:', err))
+        setOpen(true);
     }
 
     const handleDeleteAccount = () => {
@@ -57,7 +96,15 @@ const Settings = ({user, setUser}) => {
                     </Tabs>
                 </Col>
             </Row>
-
+            
+<Snackbar
+  open={open}
+  autoHideDuration={6000}
+  anchorOrigin={{ vertical, horizontal }}
+  onClose={handleClose}
+  message="Account Has Been Updated!"
+  action={action}
+/>
         </div>
 
     );

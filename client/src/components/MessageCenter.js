@@ -4,9 +4,10 @@ import {Link } from "react-router-dom";
 import MessageForm from './MessageForm'
 
 
-const MessageCenter = () => {
+const MessageCenter = ({socket}) => {
 	const [conversations, setConversations] = useState([])
 	const [convoId, setConvoId] = useState(null)
+	const [messageDict, setMessageDict] = useState(null)
   
 	useEffect(() => {
   
@@ -14,6 +15,7 @@ const MessageCenter = () => {
 			.then((r) => r.json())
 			.then((d)=> {
 			  setConversations(d.list)
+			  setMessageDict(d.messages)
 			  setConvoId(d['convo_id'])
 			})
   
@@ -35,7 +37,7 @@ const MessageCenter = () => {
 		  {convoArray}
 		</div>
 		<div className="message-form-container">
-		  <MessageForm convoId={convoId} />
+		  <MessageForm socket={socket} messageDict={messageDict} setMessageDict={setMessageDict} convoId={convoId} />
 		</div>
 	  </div>
 	);

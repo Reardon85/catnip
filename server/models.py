@@ -81,6 +81,7 @@ class User(db.Model, SerializerMixin):
     religion= db.Column(db.String)
     interested_in= db.Column(db.String, default='NA/NA/NA/NA/NA/NA/25/18,80')
     last_request = db.Column(db.DateTime, default=datetime.utcnow)
+    sid = db.Column(db.String)
 
     #Do I need a backref in favorites. Since a user should never know who favorited them
     #possibly to do a cascade delete, but not sure if cascadeeletes workon association tables

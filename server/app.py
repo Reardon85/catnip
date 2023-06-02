@@ -17,7 +17,9 @@ import requests
 from math import radians, sin, cos, sqrt, atan2
 from datetime import datetime, timedelta
 from random import randint, choice as rc
-# from flask_socketio import SocketIO, emit, join_room
+from flask_socketio import SocketIO, emit, join_room
+
+
 
 # Local imports
 from config import app, db, api, auth0, or_, and_, not_, desc
@@ -60,6 +62,100 @@ app.config['SECRET_KEY'] = 'secret!'
 # def handle_connect():
 #     # Perform necessary operations when a client connects
 #     join_room('user_room')  # Join a room specific to the user
+
+
+
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+@socketio.on('connect')
+def handle_connect():
+    print("I am connecting and joining the room sid")
+    
+    join_room(request.sid)
+
+@socketio.on('start')
+def handle_listeners(data):
+    the_client = User.query.filter_by(id=data['userId']).first()
+    the_client.sid = request.sid
+    db.session.add(the_client)
+    db.session.commit()
+
+    print("I am setting up listeners for everything")
+    the_client = User.query.filter_by(id=data['userId']).first()
+    fav_users = the_client.favorited_users
+    #id will track fav_users. follow all channels of your favorites users
+    for user in fav_users:
+        print(user)
+        join_room(user.id)
+    
+    #username will track Match / Sid will track message(maybe change later to email)
+    join_room(the_client.username)
+    join_room(request.sid)
+    #now we got to emit to our userid so those who favorited us see we are online
+    emit('favorites', {
+    "avatar_url": the_client.avatar_url,
+    "id": the_client.id,
+    "username": the_client.username
+  }, room= the_client.id)
+@socketio.on('join')
+
+
+def on_join(data):
+    room = data['convoId']
+    join_room(room)
+    
+    emit('user_connected', {'message':  "has entered the room."}, room=room)
+
+@socketio.on('message')
+def handle_message(data):
+
+    the_client = User.query.filter_by(id=data['userId']).first()
+    print(1)
+    print(request.sid)
+   
+    message = Message(text=data['message'], convo_id=data['convoId'], user_id=data['userId'])
+    db.session.add(message)
+    print(3)
+    db.session.commit()
+    the_convo = message.conversation
+    print(data['userId'])
+    print(the_convo.user_one_id)
+    print(the_convo.user_two_id)
+    if int(data['userId']) == the_convo.user_one_id:
+        print('inside the if ')
+        the_convo.user_two_seen = False
+        other_user = the_convo.user_two_id
+    else:
+        the_convo.user_one_seen = False
+
+        other_user = the_convo.user_one_id
+    print(other_user)
+    the_user = User.query.filter_by(id = other_user).first()
+    print('sid', type(the_user.sid))
+    print(type(request.sid))
+    for room in socketio.server.rooms(request.sid):
+        print(type(room), room)
+        
+
+    print('all the rooms!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    db.session.add(the_convo)
+    db.session.commit()
+    print(the_user.sid)
+    emit('message', {'text': data['message'], 'user_id':the_client.id, 'username':the_client.username, 'avatar_url':the_client.avatar_url, 'convoId':data['convoId'], 'created_at':the_convo.created_at.isoformat() }, room=data['convoId'])
+    if the_user.sid:
+        emit('msgNotify', {'username':the_client.username, 'avatar_url':the_client.avatar_url }, room=the_user.sid)
+
+
+
+
+
+
+    
+    
+
+
+
 
 class AuthError(Exception):
     def __init__(self, error, status_code):
@@ -369,13 +465,15 @@ class User_Profiles(Resource):
             if user_id > the_client.id:
                 the_match = [match for match in the_client.match_two if (match.user_one_id == user_id)] 
                 if the_match:
+                    the_match = the_match[0] 
                     if the_match.user_two_liked == True:
                         liked = True
                     elif the_match.user_two_liked == False:
                         liked = False
             else:
                 the_match = [match for match in the_client.match_one if match.user_two_id == user_id]
-                if the_match: 
+                if the_match:
+                    the_match = the_match[0] 
                     if the_match.user_one_liked == True:
                         liked = True
                     elif the_match.user_one_liked == False:
@@ -648,7 +746,7 @@ class Quick_Match(Resource):
         )
 
         # Get the users who are not in the list of already responded users.
-        potential_matches = query.filter(User.id.notin_(already_responded_users)).filter(User.id != session['user_id']).all()
+        potential_matches = query.filter(User.id.notin_(already_responded_users)).filter(User.id != session['user_id']).limit(15).all()
 
 
         if potential_matches:
@@ -677,33 +775,40 @@ class Matches(Resource):
     def post(self):
         #passes user_id in Post body. Checks to see if a Match Obj already exists for the user_id and client id. If not create one and set user_one/two_liked to true.
         # For Profile &  QuickMatch component - handleJudgement()
+        
         data = request.get_json()
         user_id = int(data['userId'])
-        the_client_id = session['user_id']
+        the_client_id = int(session['user_id'])
         if user_id == the_client_id:
             return make_response({'error':"Unauthorized Action"}, 400)
-        try:
-            if user_id > the_client_id:
-                match_obj = Match.query.filter(Match.user_one_id==user_id).filter(Match.user_two_id==the_client_id).first()
-                if not match_obj:
-                    match_obj = Match(user_one_id=user_id, user_two_id=the_client_id, user_two_liked=data['judgement'])
-                else:
-                    match_obj.user_two_liked= data['judgement']
-                db.session.add(match_obj)
-                db.session.commit()
-                match_dict = match_obj.to_dict(only=('user_one_id', 'user_two_id', 'user_one_liked'))
+      
+        if user_id > the_client_id:
+            match_obj = Match.query.filter(Match.user_one_id==user_id).filter(Match.user_two_id==the_client_id).first()
+            if not match_obj:
+                match_obj = Match(user_one_id=user_id, user_two_id=the_client_id, user_two_liked=data['judgement'])
             else:
-                match_obj = Match.query.filter(Match.user_one_id==the_client_id).filter(Match.user_two_id==user_id).first()
-                if not match_obj:
-                    match_obj = Match(user_two_id=user_id, user_one_id=the_client_id, user_one_liked=data['judgement'])
-                else:
-                    match_obj.user_one_liked= data['judgement']
-                db.session.add(match_obj)
-                db.session.commit()
-                match_dict = match_obj.to_dict(only=('user_one_id', 'user_two_id', 'user_one_liked'))
-            return make_response(match_dict, 200)
-        except Exception as ex:
-            return make_response({'error':ex.__str__()}, 422)
+                match_obj.user_two_liked= data['judgement']
+            db.session.add(match_obj)
+            db.session.commit()
+            match_dict = match_obj.to_dict(only=('user_one_id', 'user_two_id', 'user_one_liked'))
+        else:
+            match_obj = Match.query.filter(Match.user_one_id==the_client_id).filter(Match.user_two_id==user_id).first()
+            if not match_obj:
+                match_obj = Match(user_two_id=user_id, user_one_id=the_client_id, user_one_liked=data['judgement'])
+            else:
+                match_obj.user_one_liked= data['judgement']
+            db.session.add(match_obj)
+            db.session.commit()
+            match_dict = match_obj.to_dict(only=('user_one_id', 'user_two_id', 'user_one_liked'))
+        
+        user_one = match_obj.user_one 
+        user_two = match_obj.user_two
+        compatability = match_percentage(user_one, user_two)
+        print(compatability)
+        emit('matched', {**match_obj.user_two.to_dict(only={'username', 'avatar_url', 'id'}), 'match_percentage': compatability }, room=match_obj.user_one.username, namespace='/')
+        emit('matched', {**match_obj.user_one.to_dict(only={'username', 'avatar_url', 'id'}), 'match_percentage': compatability}, room=match_obj.user_two.username, namespace='/')
+        return make_response(match_dict, 200)
+     
 api.add_resource(Matches, '/api/match')
 
 class Visitors(Resource):
@@ -732,6 +837,7 @@ class Conversations(Resource):
         the_client = User.query.filter_by(id=session['user_id']).first()
         convos = the_client.conversations
         convo_list = []
+        the_dict = {}
 
         if convos:
             first_convo_id = convos[0].id
@@ -743,9 +849,12 @@ class Conversations(Resource):
             else:
                 other_user = User.query.filter_by(id=convo.user_one_id).first()
                 seen = {'seen': convo.user_two_seen}
+
+            message_list = [{**message.to_dict(), **message.user.to_dict(only=('avatar_url', 'username'))} for message in convo.messages]
+            the_dict[convo.id] = [{**message.to_dict(), **message.user.to_dict(only=('avatar_url', 'username'))} for message in convo.messages]
             convo_list.append({**convo.to_dict(),**seen, **other_user.to_dict(only=('avatar_url', 'username'))})
         
-        return make_response({'convo_id': first_convo_id, 'messages': first_convo_mes, 'list':convo_list}, 200)
+        return make_response({'convo_id': first_convo_id, 'messages': the_dict, 'list':convo_list}, 200)
     
     def post(self):
         #Passes user_id in post body. Check if a Converation obj for the client and user_id already exists if it does then update the updated_at time. otherwise create Obj
@@ -927,5 +1036,6 @@ def index(id=0):
     return render_template("index.html")
 
 if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+   
+    socketio.run(app, port=5555, debug=True)
     

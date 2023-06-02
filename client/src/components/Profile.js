@@ -8,7 +8,7 @@ import Pets from './Pets';
 import PhotoCarousel from './PhotoCarousel';
 
 
-const Profile = () => {
+const Profile = ({user}) => {
     const [profileInfo, setProfileInfo] = useState({})
     const [myProfile, setMyProfile] = useState({})
     const [liked, setLiked] = useState(null)
@@ -57,7 +57,7 @@ const Profile = () => {
             return r.json()
         })
         .then((data) => {
-            navigate("/message")
+            navigate(`/messages/${user.id}`)
         })
         .catch((err) => {
             console.log(err)

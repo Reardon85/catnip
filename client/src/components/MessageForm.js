@@ -1,59 +1,75 @@
 import React, { useState, useEffect } from 'react';
 import Messages from './Messages';
+import { useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 
 
-const MessageForm = ({ convoId }) => {
+
+const MessageForm = ({user, convoId, messageDict, setMessageDict }) => {
   const [message, setMessage] = useState('');
   const [messageList, setMessageList] = useState([])
 
-  console.log(convoId)
+  const [Nmessage, setNMessage] = useState('');
+  const [messages, setMessages] = useState([]);
+  const {userId} = useParams()
+  const socket = useSelector(state => state.socket.socket);
+
+ 
 
   useEffect(() => {
 
 
-    
+    socket.emit('join', {  convoId, userId });
 
-    // socket.on('receive_message', data => {
-    //   console.log("the socket worked")
-    //   console.log(data)
-    //   setMessageList(prevMessages =>  prevMessages.concat(data));
-    // });
+    socket.on('user_connected', data => {
+        console.log('connected', data.Message)
+      setMessages(prevMessages => [...prevMessages, data.message]);
+    });
 
-   
-    // socket.emit('join', convoId);
+    socket.on('message', data => {
+      console.log("test bro", data.message)
+      setMessageDict((messageDict) => ({
+        ...messageDict,
+        [data.convoId]: [...(messageDict[data.convoId] || []), data],
+      }));
+      
+      
+      setMessages(prevMessages => [...prevMessages, data.message]);
+    });
 
-    fetch(`api/messages/${convoId}`)
-      .then((r) => r.json())
-      .then((d) => setMessageList(d))
-
-    // return () => socket.off("message");
+      
+    return () => {
+      socket.off('user_connected');
+      socket.off('message');}
   }, [convoId])
-  
+   
 
-  const comment_array = messageList.map((c) => {
+    const comment_array = convoId ? Object.values(messageDict[convoId]).map((c) => {
     return <Messages key={c.id} username={c.username} avatar={c.avatar_url} timestamp={c.created_at} content={c.text} userId={c.user_id} />
-  })
+        }) : " "
+
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // Here you would handle the comment submission, for instance, by calling an API endpoint.
-    // socket.emit('send_message', { convoId:'uNhMcQatcz11xS7DAAAF', message }); 
+
     
+ 
+    socket.emit('message', { convoId, message, userId });
     
     const message_info = {
       convoId: convoId,
       text: message,
     }
 
-    fetch(`api/messages/${convoId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(message_info)
-    }).then((r) => r.json())
-      .then((d) => setMessageList((messageList) => messageList.concat(d)))
+    // fetch(`api/messages/${convoId}`, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json"
+    //   },
+    //   body: JSON.stringify(message_info)
+    // }).then((r) => r.json())
+    //   .then((d) => setMessageList((messageList) => messageList.concat(d)))
 
 
     setMessage('');
