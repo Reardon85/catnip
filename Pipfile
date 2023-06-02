@@ -23,6 +23,7 @@ pyjwt = {extras = ["crypto"], version = "*"}
 requests = "*"
 flask-socketio = "*"
 eventlet = "*"
+gevent = "*"
 
 [dev-packages]
 
