@@ -22,6 +22,7 @@ const ActiveFavorites = () => {
         }
 
         socket.on('favorites', onAddFavorite)
+        console.log('inside activefavorite use effect')
         fetch(`/api/favorites`)
 
             .then((r) => {
@@ -35,9 +36,7 @@ const ActiveFavorites = () => {
             })
             .catch((err)=> console.log(err))
         return() => {
-
-            
-
+            console.log('turning off favorite 2 socket')
             socket.off('favorites', onAddFavorite)
         }
 
