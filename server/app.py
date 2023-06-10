@@ -297,6 +297,7 @@ class Logout(Resource):
         the_client = User.query.filter_by(id=session['user_id']).first()
         the_client.sid= ''
         the_client.logged_off()
+        print('WE ARE INSIDE THE LOG OUT VIEW $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
 
         emit('favorites', {
             'logon': False,
@@ -304,6 +305,8 @@ class Logout(Resource):
             'avatar_url': the_client.avatar_url,
             'username': the_client.username
         }, room=the_client.id)
+
+    
         
         disconnect()
         session['user_id'] = None

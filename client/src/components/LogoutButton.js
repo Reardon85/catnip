@@ -19,12 +19,13 @@ const LogoutButton = ({setUser}) => {
                 throw new Error(r.statusText) 
             }
             setUser(null)
+            logout({ logoutParams: { returnTo: window.location.origin } })
         })
         .catch((err)=> console.log(err))
 
 
 
-        logout({ logoutParams: { returnTo: window.location.origin } })
+        
 
     }
 
