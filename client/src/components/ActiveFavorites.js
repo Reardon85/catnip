@@ -24,10 +24,12 @@ const ActiveFavorites = () => {
                 if (!r.ok) {
                     throw new Error(r.statusText)   
                 }
+                console.log('new fetch is happening')
                 return r.json()
             })
             .then(data => {
-                setFavOnline(data)
+                console.log('fetch data', data)
+                setFavOnline(()=> data)
             })
             .catch((err)=> console.log(err))
 
