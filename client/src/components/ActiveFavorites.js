@@ -18,7 +18,19 @@ const ActiveFavorites = () => {
 
         function onAddFavorite(data){
             console.log('SECOND inside Favorites listener')
-            setFavOnline((favOnline)=> [...favOnline, data])
+            // setFavOnline((favOnline)=> [...favOnline, data])
+            fetch(`/api/favorites`)
+            .then((r) => {
+                if (!r.ok) {
+                    throw new Error(r.statusText)   
+                }
+                return r.json()
+            })
+            .then(data => {
+                setFavOnline(data)
+            })
+            .catch((err)=> console.log(err))
+
         }
 
         socket.on('favorites', onAddFavorite)
@@ -35,6 +47,8 @@ const ActiveFavorites = () => {
                 setFavOnline(data)
             })
             .catch((err)=> console.log(err))
+
+
         return() => {
             console.log('turning off favorite 2 socket')
             socket.off('favorites', onAddFavorite)
