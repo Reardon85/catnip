@@ -133,7 +133,8 @@ class User(db.Model, SerializerMixin):
         db.session.commit()
 
     def logged_off(self):
-        self.last_request = self.last_request + timedelta(minutes=100)
+        self.last_request = self.last_request - timedelta(minutes=100)
+        print('Logging off')
         db.session.add(self)
         db.session.commit()
     
