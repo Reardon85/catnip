@@ -145,7 +145,7 @@ def handle_message(data):
     print(the_user.sid)
     emit('message', {'text': data['message'], 'user_id':the_client.id, 'username':the_client.username, 'avatar_url':the_client.avatar_url, 'convoId':data['convoId'], 'created_at':the_convo.created_at.isoformat() }, room=data['convoId'])
     if the_user.sid:
-        emit('msgNotify', {'username':the_client.username, 'avatar_url':the_client.avatar_url }, room=the_user.sid)
+        emit('msgNotify', {'username':the_client.username, 'avatar_url':the_client.avatar_url }, room=the_user.sid, namespace='/')
 
 
 
