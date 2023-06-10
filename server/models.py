@@ -144,7 +144,7 @@ class User(db.Model, SerializerMixin):
 
         print (diff)
 
-        if diff <timedelta(minutes=60):
+        if diff <timedelta(minutes=10):
             return True
         else:
             return False

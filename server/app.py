@@ -286,6 +286,7 @@ class Login(Resource):
         the_client = User.query.filter_by(auth_sub=sub_id).first()
         if the_client:
             session['user_id'] = the_client.id
+            the_client.update_activity()
             return make_response({'newUser':False, 'user':the_client.to_dict()}, 200)
             
         return make_response({'user':False, 'newUser':True}, 200)

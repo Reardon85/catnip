@@ -24,10 +24,10 @@ const Navigation = ({user, newMsgs, setNewMsgs, newMatch, setNewMatch}) => {
         <Nav.Link as={Link} className="nav-link fs-4 px-3" to="/">Home</Nav.Link>
         <Nav.Link as={Link} className="nav-link fs-4 px-3" to={`/profile/${user.id}`}>Profile</Nav.Link>
         <Badge badgeContent={newMatch} color="primary">
-        <Nav.Link as={Link} className="nav-link fs-4 px-3" to="/match">Match</Nav.Link>
+        <Nav.Link as={Link} className="nav-link fs-4 px-3" onClick={()=> setNewMatch(()=> 0)} to="/match">Match</Nav.Link>
         </Badge>
         <Badge badgeContent={newMsgs} color="primary">
-        <Nav.Link as={Link} className="nav-link fs-4 px-3" to={`/messages/${user.id}`}>Message</Nav.Link>
+        <Nav.Link as={Link} className="nav-link fs-4 px-3" onClick={()=>setNewMsgs(()=> 0)} to={`/messages/${user.id}`}>Message</Nav.Link>
           </Badge>
         <Nav.Link as={Link} className="nav-link fs-4 px-3" to="/search">Search</Nav.Link>
        
