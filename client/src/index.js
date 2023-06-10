@@ -12,7 +12,7 @@ ReactDOM.render(
     domain="dev-yxel2dejc2kr1a0k.us.auth0.com"
     clientId='u14eAuErNPhorJHv5ctsBMztZJXNzqiK'
     authorizationParams={{
-      redirect_uri: "http://localhost:3000/",
+      redirect_uri: "https://catnip-7vlf.onrender.com/",
       audience: 'https://dev-yxel2dejc2kr1a0k.us.auth0.com/api/v2/',
       scope: "read:current_user update:current_user_metadata"
     }}>
