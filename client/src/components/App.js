@@ -79,6 +79,7 @@ function TransitionLeft(props) {
 
 
         if(semaphore && user){
+            console.log('inside the semaphore')
             
             socket.on('msgNotify', data => {
                 console.log(typeof(data))
@@ -113,12 +114,13 @@ function TransitionLeft(props) {
             socket.emit('start', {userId:user.id})
             setSemaphor((semaphore)=> !semaphore)
 
-            // return() => {
-            //     socket.off('msgNotify',)
-            //     socket.off('favorites')
-            //     socket.off('matched')
+            return() => {
+                console.log('inside the return socket off')
+                socket.off('msgNotify',)
+                socket.off('favorites')
+                socket.off('matched')
 
-            // }
+            }
 
         }
 
