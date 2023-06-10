@@ -216,9 +216,9 @@ return (
     <Container fluid className="px-md-5">
         <Routes>
             <Route path="/" exact element={<Home />} />
-            <Route path='/profile/:userId' element={<Profile user={user}/>} />
-            <Route path='/match' element={<Match/>} />
-            <Route path="/messages/:userId" element={<MessageCenter  user={user}/>} />
+            <Route exact path='/profile/:userId' element={<Profile user={user}/>} />
+            <Route exact path='/match' element={<Match/>} />
+            <Route exact path="/messages/:userId" element={<MessageCenter  user={user}/>} />
             <Route path="/search" element={<Search/>} />
             <Route path='/profile/:userId/settings' element={<Settings user={user} setUser={setUser}/>} />
             <Route path='/profile/:userId/pet/:petId' element={<Pets/>} />
