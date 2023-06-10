@@ -17,7 +17,7 @@ import requests
 from math import radians, sin, cos, sqrt, atan2
 from datetime import datetime, timedelta
 from random import randint, choice as rc
-from flask_socketio import SocketIO, emit, join_room
+from flask_socketio import SocketIO, emit, join_room, disconnect
 
 
 
@@ -94,6 +94,7 @@ def handle_listeners(data):
     join_room(request.sid)
     #now we got to emit to our userid so those who favorited us see we are online
     emit('favorites', {
+    'logon': True,
     "avatar_url": the_client.avatar_url,
     "id": the_client.id,
     "username": the_client.username
@@ -270,7 +271,6 @@ def calculate_distance(lat1, lon1, lat2, lon2):
 
 
 class Login(Resource):
-   
     def get(self):
         # Returns User Info for Client. May be weird Auth0. 
         # For Login component - [Insert Button Click Function]
@@ -290,6 +290,27 @@ class Login(Resource):
             
         return make_response({'user':False, 'newUser':True}, 200)
 api.add_resource(Login, '/api/login')
+
+class Logout(Resource):
+    def post(self):
+
+        the_client = User.query.filter_by(id=session['user_id']).first()
+        the_client.sid= ''
+        the_client.logged_off()
+
+        emit('favorites', {
+            'logon': False,
+            'id': the_client.id,
+            'avatar_url': the_client.avatar_url,
+            'username': the_client.username
+        }, room=the_client.id)
+        
+        disconnect()
+        session['user_id'] = None
+        return make_response({'message': 'Successfully Logged Out'}, 204)
+        
+
+api.add_resource(Logout, '/api/logout')
 
 
 class Register(Resource):

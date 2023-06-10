@@ -86,9 +86,11 @@ function TransitionLeft(props) {
 
         function onFavorites(data){
             console.log('inside Favorites listener1')
-            setC(()=> ({message:`${data.username} Is Online! `, avatar_url:data.avatar_url})) 
-            setTran(() => TransitionLeft);
-            setO(true);
+            if(data.logon){
+                setC(()=> ({message:`${data.username} Is Online! `, avatar_url:data.avatar_url})) 
+                setTran(() => TransitionLeft);
+                setO(true);
+            }
 
         }
 
@@ -246,6 +248,7 @@ return (
             <Route path='/profile/:userId/create-pet' element={<CreatePet />} />
             <Route path='/profile/:userId/upload-image/' element={<ImageUpload />} />
             <Route path='/profile/:userId/pet/:petId/upload-image/' element={<ImageUpload />} />
+            <Route path='/logout' element={<LogoutButton setUser={setUser}/>} />
         </Routes>
         <Snackbar
                 open={open2}

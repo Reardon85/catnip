@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import '../index.css';
-import {Link } from "react-router-dom";
+import {Link, useNavigate } from "react-router-dom";
 import LogoutButton from './LogoutButton';
 
 const SettingsBasic = ({user, onUpdateAccount, onDeleteAccount}) => {
@@ -10,7 +10,7 @@ const SettingsBasic = ({user, onUpdateAccount, onDeleteAccount}) => {
     const [zipcode, setZipcode] = useState(user.zipcode);
     const [bio, setBio] = useState(user.bio);
     const [hobbies, setHobbies] = useState(user.hobbies)
-
+    const navigate = useNavigate()
   
   
     const handleSubmit = async (event) => {
@@ -75,7 +75,8 @@ const SettingsBasic = ({user, onUpdateAccount, onDeleteAccount}) => {
 
           <button  onClick={handleSubmit}>Update Account</button>
           <button onClick={onDeleteAccount}>Delete Account</button>
-          <LogoutButton/>
+          <button onClick={()=> navigate('/logout')}>Log Out</button>
+          
         </div>
       );
 };

@@ -1,14 +1,38 @@
 import React from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 
-const LogoutButton = () => {
-  const { logout } = useAuth0();
+const LogoutButton = ({setUser}) => {
+    const { logout } = useAuth0();
 
-  return (
-    <button onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>
-      Log Out
-    </button>
-  );
+    const onLogOut = () =>{
+
+
+        fetch('/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type':'application/json'
+            },
+        })
+        .then(r => {
+
+            if(!r.ok){
+                throw new Error(r.statusText) 
+            }
+            setUser(null)
+        })
+        .catch((err)=> console.log(err))
+
+
+
+        logout({ logoutParams: { returnTo: window.location.origin } })
+
+    }
+
+    return (
+        <button onClick={onLogOut}>
+            Log Out
+        </button>
+    );
 };
 
 export default LogoutButton;
