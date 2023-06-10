@@ -7,7 +7,7 @@ const LogoutButton = ({setUser}) => {
     const onLogOut = () =>{
 
 
-        fetch('/logout', {
+        fetch('/api/logout', {
             method: 'POST',
             headers: {
                 'Content-Type':'application/json'
