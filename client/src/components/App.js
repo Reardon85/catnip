@@ -113,18 +113,18 @@ function TransitionLeft(props) {
             socket.emit('start', {userId:user.id})
             setSemaphor((semaphore)=> !semaphore)
 
-            return() => {
-                socket.off('msgNotify',)
-                socket.off('favorites')
-                socket.off('matched')
+            // return() => {
+            //     socket.off('msgNotify',)
+            //     socket.off('favorites')
+            //     socket.off('matched')
 
-            }
+            // }
 
         }
 
     },[user])
 
-
+    console.log('checking on user', user)
     
     useEffect(() => {
 
