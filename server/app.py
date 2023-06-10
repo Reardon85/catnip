@@ -6,7 +6,7 @@
 from functools import wraps
 from jose import jwt
 import json
-from flask import request, make_response, abort, jsonify, render_template, session    
+from flask import request, make_response, abort, jsonify, render_template, session, send_from_directory    
 from flask_restful import Resource
 import os
 from uuid import uuid4
@@ -1033,7 +1033,7 @@ def match_percentage(the_client, the_user):
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def index(path):
-    return render_template("index.html")
+    return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
    
