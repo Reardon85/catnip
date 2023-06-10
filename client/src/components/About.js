@@ -4,24 +4,25 @@ import {Link } from "react-router-dom";
 import {   Box } from '@mui/material';
 
 
-const About = ({profileInfo}) => {
+const About = ({bio, hobbies}) => {
 
   
   
   return (
     <div>
       <Box marginY={5}>
-      <h3>Self-Summary:</h3>
-      {profileInfo.bio}
+        <h3>Self-Summary:</h3>
+        {bio}
       </Box>
       <Box marginTop={2}>
-      <h3>Hobbies:</h3>
-      {profileInfo.hobbies}
+        {bio ? (
+          <>
+            <h3>Hobbies:</h3>
+            {hobbies}
+          </>
+        ) : " "}
       </Box>
     </div>
-    
-
-  );
-};
+  )};
 
 export default About;

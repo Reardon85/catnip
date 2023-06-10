@@ -4,7 +4,7 @@ import { setSocket } from '../actions/socket';
 import io from 'socket.io-client';
 
 export const setupSocket = (dispatch, username) => {
-  const socket = io('https://catnip-7vlf.onrender.com', {
+  const socket = io('http://localhost:5555', {
     query: { username }
   });
 

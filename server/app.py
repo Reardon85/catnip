@@ -750,7 +750,7 @@ class Quick_Match(Resource):
 
 
         if potential_matches:
-            potential_dict_list = [suitor.to_dict(only=('username', 'id', 'avatar_url', 'photos')) for suitor in potential_matches]
+            potential_dict_list = [suitor.to_dict(only=('username', 'id', 'avatar_url', 'photos', 'age',  'city')) for suitor in potential_matches]
             return make_response(potential_dict_list, 200)
         return make_response({'error':'Not Found'}, 200)
 api.add_resource(Quick_Match, '/api/quick-match')
@@ -805,8 +805,9 @@ class Matches(Resource):
         user_two = match_obj.user_two
         compatability = match_percentage(user_one, user_two)
         print(compatability)
-        emit('matched', {**match_obj.user_two.to_dict(only={'username', 'avatar_url', 'id'}), 'match_percentage': compatability }, room=match_obj.user_one.username, namespace='/')
-        emit('matched', {**match_obj.user_one.to_dict(only={'username', 'avatar_url', 'id'}), 'match_percentage': compatability}, room=match_obj.user_two.username, namespace='/')
+        if match_obj.matched:
+            emit('matched', {**match_obj.user_two.to_dict(only={'username', 'avatar_url', 'id'}), 'match_percentage': compatability }, room=match_obj.user_one.username, namespace='/')
+            emit('matched', {**match_obj.user_one.to_dict(only={'username', 'avatar_url', 'id'}), 'match_percentage': compatability}, room=match_obj.user_two.username, namespace='/')
         return make_response(match_dict, 200)
      
 api.add_resource(Matches, '/api/match')

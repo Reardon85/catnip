@@ -57,7 +57,7 @@ const CreatePet = () => {
                 
             {file && (
                 <div> 
-                    <img src={URL.createObjectURL(file)} alt='preview' />
+                    <img src={URL.createObjectURL(file)} alt='preview' className='preview-image' />
                 </div>
             )}
             <h2>Add Pet:</h2>

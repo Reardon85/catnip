@@ -180,7 +180,7 @@ const Profile = ({user}) => {
             <Tabs defaultActiveKey="about" id="uncontrolled-tab-example" className="px-1" justify >
                 
                 <Tab eventKey="about" title="About" className="px-1"  >
-                    <About profileInfo={profileInfo}/>
+                    <About bio={profileInfo.bio} hobbies={profileInfo.hobbies}/>
                 </Tab>
                 <Tab eventKey="pets" title=" Pets  " className="custom-tab" >
                     <Pets myProfile={myProfile} />

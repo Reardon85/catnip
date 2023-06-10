@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import '../index.css';
 import {Link } from "react-router-dom";
+import LogoutButton from './LogoutButton';
 
 const SettingsBasic = ({user, onUpdateAccount, onDeleteAccount}) => {
 
@@ -72,8 +73,9 @@ const SettingsBasic = ({user, onUpdateAccount, onDeleteAccount}) => {
             <textarea value={hobbies} onChange={e => setHobbies((hobbies)=> e.target.value)} rows={4} cols={60} maxLength={200}/>
 
 
-          <button onClick={handleSubmit}>Update Account</button>
+          <button  onClick={handleSubmit}>Update Account</button>
           <button onClick={onDeleteAccount}>Delete Account</button>
+          <LogoutButton/>
         </div>
       );
 };

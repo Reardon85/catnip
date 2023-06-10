@@ -43,6 +43,14 @@ body {
 
   .profile-pic {
     width: 25vh;
+    height: 25vh;
+    border-radius: 10%;
+    
+    object-fit: cover;
+  }
+  .cat-card-pic {
+    width: 35vh;
+    height: 35vh;
     border-radius: 10%;
     
     object-fit: cover;
@@ -124,7 +132,7 @@ body {
 
 .upload-container input[type="text"]:focus {
     outline: none;
-    border-color: #d5ffc6;
+    border-color: #c6cbff;
     box-shadow: 0px 0px 5px 0px rgba(1, 144, 68, 0.197);
 }
 
@@ -227,7 +235,7 @@ body {
   text-transform: uppercase;
   padding: 0.6em 1.2em;
   background-color: #e4ebd5;
-  color: #97b175;
+  color: #7591b1;
   box-shadow: 0 8px 24px 0 rgb(255 235 167 / 20%);
   transition: all .3s ease-in-out;
 }
@@ -246,8 +254,8 @@ body {
 }
 
 .com-btn:hover {
-  background-color: #8dca8a;
-  color: #fcf7e6;
+  background-color: #8b8aca;
+  color: #e6ebfc;
   box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
 }
 
@@ -285,7 +293,7 @@ body {
 }
 
 .com-btn1:hover {
-  background-color: #8dca8a;
+  background-color: #8a9bca;
   color: #fcf7e6;
   box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
 }
@@ -296,7 +304,7 @@ body {
 
 .message {
   font-size: 15px;
-  color: #5c6649;
+  color: #494f66;
 }
 
 /* 
@@ -307,7 +315,7 @@ comments  */
   border-radius: 5px;
   padding: 10px;
   margin-bottom: 10px;
-  background-color: #fefffdba;
+  background-color: #fdfeffba;
 }
 
 .comment-header {
@@ -320,7 +328,7 @@ comments  */
 .comment-author {
   margin: 0;
   font-size: 1.2em;
-  color: #5c6649;
+  color: #495266;
   ;
 }
 

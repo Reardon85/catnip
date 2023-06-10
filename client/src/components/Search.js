@@ -32,6 +32,9 @@ const Search = () => {
 
     useEffect(()=> {
 
+        const x = searchParams.get('age')
+        console.log('age', x)
+
         if(searchParams.size > 0){
             fetch(`/api/search/?${searchParams.toString()}`)
             .then(r => {
