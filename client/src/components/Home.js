@@ -15,17 +15,17 @@ const Home = () => {
           <SuggestMatch />
         </Grid>
         <Grid item xs={1} />
-        <Grid item xs={4}>
+        <Grid item xs={3}>
           <Paper elevation={3}>
-            <Box height={1}>
+            <Box sx={{ height: '40vh' }}>
               <RecentVisits />
             </Box>
           </Paper>
         </Grid>
         <Grid item xs={1} /> {/* Additional padding */}
-        <Grid item xs={4}>
-          <Paper elevation={3}>
-            <Box height={1}>
+        <Grid item xs={3}>
+          <Paper elevation={10}>
+            <Box  sx={{ height: '40vh' }}>
               <ActiveFavorites />
             </Box>
           </Paper>

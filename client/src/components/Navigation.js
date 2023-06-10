@@ -4,6 +4,8 @@ import {Link } from "react-router-dom";
 import { Navbar, Nav } from 'react-bootstrap';
 import {Badge } from '@mui/material';
 
+import LogoutButton from './LogoutButton';
+
 const Navigation = ({user, newMsgs, setNewMsgs, newMatch, setNewMatch}) => {
 
   useEffect(()=> {
@@ -28,7 +30,7 @@ const Navigation = ({user, newMsgs, setNewMsgs, newMatch, setNewMatch}) => {
         <Nav.Link as={Link} className="nav-link fs-4 px-3" to={`/messages/${user.id}`}>Message</Nav.Link>
           </Badge>
         <Nav.Link as={Link} className="nav-link fs-4 px-3" to="/search">Search</Nav.Link>
-        
+       
       </Nav>
     </Navbar.Collapse>
   </Navbar>

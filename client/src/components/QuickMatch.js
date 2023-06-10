@@ -108,14 +108,16 @@ const QuickMatch = () => {
                   Age: {currentMatch.age}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Location: {currentMatch.distance}
+                  Location: {currentMatch.city}
                 </Typography>
-                <Button variant="contained" color="primary" onClick={()=> handleJudgement(true)}>
+                
+                <Button  variant="contained" color="primary" onClick={()=> handleJudgement(true)}>
                   Like
                 </Button>
-                <Button variant="contained" color="secondary" onClick={()=> handleJudgement(false)}>
+                <Button  variant="contained" color="secondary" onClick={()=> handleJudgement(false)}>
                   Pass
                 </Button>
+               
               </CardContent>
             </Card>
           </Grid>

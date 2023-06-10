@@ -5,7 +5,7 @@ import { Tab, Tabs, ListGroup, Card, Button, Container, Row, Col, Navbar, Nav,  
 import { Slide, Snackbar, Alert, Typography} from '@mui/material';
 
 import 'bootstrap/dist/css/bootstrap.min.css'
-
+import { socket } from './socket';
 import LoginButton from "./LoginButton";
 import LogoutButton from "./LogoutButton";
 import { User, useAuth0 } from "@auth0/auth0-react";
@@ -19,6 +19,7 @@ import Search from "./Search";
 import NewAccount from "./NewAccount";
 import Settings from "./Settings";
 import Pets from "./Pets"
+import PetProfile from "./PetProfile";
 import CreatePet from './CreatePet'
 import ImageUpload from './ImageUpload'
 import { useDispatch } from 'react-redux';
@@ -42,8 +43,8 @@ function TransitionLeft(props) {
     const [newUser, setNewUser] = useState('empty');
     const [user, setUser] = useState(null);
     const [semaphore, setSemaphor] = useState(true);
-    const dispatch = useDispatch();
-    const socket = useSelector(state => state.socket.socket);
+    // const dispatch = useDispatch();
+    // const socket = useSelector(state => state.socket.socket);
     const [open, setOpen] = useState(false);
     const [transition, setTransition] = useState(undefined);
     const [contents, setContents] = useState({message:"", avatar_url:'', username:'' });
@@ -67,11 +68,15 @@ function TransitionLeft(props) {
         setO(false);
       };
   
-    useEffect(() => {
-      setupSocket(dispatch, 'username');
-    }, [dispatch]);
+    // useEffect(() => {
+    //   setupSocket(dispatch, 'username');
+    // }, [dispatch]);
 
     useEffect(()=> {
+
+    
+
+
 
         if(semaphore && user){
             
@@ -107,6 +112,14 @@ function TransitionLeft(props) {
 
             socket.emit('start', {userId:user.id})
             setSemaphor((semaphore)=> !semaphore)
+
+            return() => {
+                socket.off('msgNotify',)
+                socket.off('favorites')
+                socket.off('matched')
+
+            }
+
         }
 
     },[user])
@@ -211,17 +224,19 @@ return (
 
 
 
-    <LogoutButton/>
+   
     <Navigation user={user} newMatch={newMatch} setNewMatch={setNewMatch} newMsgs={newMsgs} setNewMsgs={setNewMsgs}/>
     <Container fluid className="px-md-5">
+        
         <Routes>
+
             <Route path="/" exact element={<Home />} />
             <Route exact path='/profile/:userId' element={<Profile user={user}/>} />
             <Route exact path='/match' element={<Match/>} />
             <Route exact path="/messages/:userId" element={<MessageCenter  user={user}/>} />
             <Route path="/search" element={<Search/>} />
             <Route path='/profile/:userId/settings' element={<Settings user={user} setUser={setUser}/>} />
-            <Route path='/profile/:userId/pet/:petId' element={<Pets/>} />
+            <Route path='/profile/:userId/pet/:petId' element={<PetProfile/>} />
             <Route path='/profile/:userId/create-pet' element={<CreatePet />} />
             <Route path='/profile/:userId/upload-image/' element={<ImageUpload />} />
             <Route path='/profile/:userId/pet/:petId/upload-image/' element={<ImageUpload />} />
