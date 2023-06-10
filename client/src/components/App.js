@@ -78,7 +78,7 @@ function TransitionLeft(props) {
 
 
 
-        if(semaphore && user){
+        if(user){
             console.log('inside the semaphore')
             
             socket.on('msgNotify', data => {
@@ -88,7 +88,7 @@ function TransitionLeft(props) {
                 setTransition(() => TransitionLeft);
                 setOpen(true);
                 setNewMsgs((newMsgs)=> newMsgs+1)
-                console.log(newMsgs)
+                
    
             });
 
@@ -112,7 +112,7 @@ function TransitionLeft(props) {
 
 
             socket.emit('start', {userId:user.id})
-            setSemaphor((semaphore)=> !semaphore)
+            // setSemaphor((semaphore)=> !semaphore)
 
 
 
@@ -156,7 +156,7 @@ function TransitionLeft(props) {
         };
   
     loginUser();
-  }, [getAccessTokenSilently, isAuthenticated]);
+  }, [isAuthenticated]);
 
   if (error) {
     return <div>Oops.. {error.message}</div>
