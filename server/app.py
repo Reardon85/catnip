@@ -1031,6 +1031,10 @@ def match_percentage(the_client, the_user):
 #     userinfo = resp.json()
 #     return jsonify(userinfo)
 
+@app.errorhandler(404)
+def not_found(e):
+    return app.send_static_file('index.html')
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def index(path):

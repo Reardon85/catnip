@@ -114,13 +114,15 @@ function TransitionLeft(props) {
             socket.emit('start', {userId:user.id})
             setSemaphor((semaphore)=> !semaphore)
 
-            return() => {
-                console.log('inside the return socket off')
-                socket.off('msgNotify',)
-                socket.off('favorites')
-                socket.off('matched')
 
-            }
+
+        }
+
+        return() => {
+            console.log('inside the return socket off')
+            socket.off('msgNotify',)
+            socket.off('favorites')
+            socket.off('matched')
 
         }
 
