@@ -32,6 +32,10 @@ const ActiveFavorites = () => {
                 setFavOnline(data)
             })
             .catch((err)=> console.log(err))
+        return() => {
+
+            socket.off('favorites')
+        }
 
 
 
