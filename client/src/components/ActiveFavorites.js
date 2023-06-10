@@ -1,14 +1,14 @@
 import React, {useState, useEffect} from 'react';
 import './styles/app.css';
 import {Link } from "react-router-dom";
-
+import { socket } from './Socket';
 import { styled } from '@mui/material/styles';
 import { useSelector } from 'react-redux';
 import { CssBaseline, List, ListItemText, Avatar, ListItemAvatar, ListItem, Badge} from "@mui/material";
 
 const ActiveFavorites = () => {
 
-    const socket = useSelector(state => state.socket.socket);
+    // const socket = useSelector(state => state.socket.socket);
 
      
     const [favOnline, setFavOnline] = useState([])
