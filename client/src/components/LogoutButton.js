@@ -1,5 +1,6 @@
 import React from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { socket } from './Socket';
 
 const LogoutButton = ({setUser}) => {
     const { logout } = useAuth0();
@@ -19,6 +20,7 @@ const LogoutButton = ({setUser}) => {
                 throw new Error(r.statusText) 
             }
             setUser(null)
+            socket.disconnect()
             logout({ logoutParams: { returnTo: window.location.origin } })
         })
         .catch((err)=> console.log(err))

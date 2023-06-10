@@ -300,10 +300,6 @@ class Logout(Resource):
         print('WE ARE INSIDE THE LOG OUT VIEW $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
 
         emit('favorites', {'logon': False, 'id': the_client.id, 'avatar_url': the_client.avatar_url,'username': the_client.username}, room=the_client.id, namespace='/')
-       
-    
-        
-        disconnect()
         session['user_id'] = None
         return make_response({'message': 'Successfully Logged Out'}, 204)
         
