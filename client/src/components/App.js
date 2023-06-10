@@ -74,41 +74,43 @@ function TransitionLeft(props) {
 
     useEffect(()=> {
 
-    
+        function onMsgNotify(data){
+            console.log(typeof(data))
+                console.log("test brodfsfsfdsfsfsfsdfsfdss")
+                setContents(()=> ({message:`New Message From `, avatar_url:data.avatar_url, username:data.username})) 
+                setTransition(() => TransitionLeft);
+                setOpen(true);
+                setNewMsgs((newMsgs)=> newMsgs+1)
+
+        }
+
+        function onFavorites(data){
+            console.log('inside Favorites listener1')
+            setC(()=> ({message:`${data.username} Is Online! `, avatar_url:data.avatar_url})) 
+            setTran(() => TransitionLeft);
+            setO(true);
+
+        }
+
+        function onMatched(data){
+            console.log('match %', data.match_percentage)
+            console.log('test matched')
+            setContents2(()=> ({message:`You Matched! ${data.match_percentage}%`, avatar_url:data.avatar_url})) 
+            setTransition2(() => TransitionLeft);
+            setOpen2(true);
+            setNewMatch((newMatch)=> newMatch+1)
+        }
 
 
 
         if(user){
             console.log('inside the semaphore')
             
-            socket.on('msgNotify', data => {
-                console.log(typeof(data))
-                console.log("test brodfsfsfdsfsfsfsdfsfdss")
-                setContents(()=> ({message:`New Message From `, avatar_url:data.avatar_url, username:data.username})) 
-                setTransition(() => TransitionLeft);
-                setOpen(true);
-                setNewMsgs((newMsgs)=> newMsgs+1)
-                
-   
-            });
+            socket.on('msgNotify', onMsgNotify);
 
-            socket.on('favorites', data=> {
-                console.log('inside Favorites listener1')
-                setC(()=> ({message:`${data.username} Is Online! `, avatar_url:data.avatar_url})) 
-                setTran(() => TransitionLeft);
-                setO(true);
-                
-                
-            })
+            socket.on('favorites', onFavorites)
 
-            socket.on('matched', data=> {
-                console.log('match %', data.match_percentage)
-                console.log('test matched')
-                setContents2(()=> ({message:`You Matched! ${data.match_percentage}%`, avatar_url:data.avatar_url})) 
-                setTransition2(() => TransitionLeft);
-                setOpen2(true);
-                setNewMatch((newMatch)=> newMatch+1)
-            })
+            socket.on('matched', onMatched)
 
 
             socket.emit('start', {userId:user.id})
@@ -120,9 +122,9 @@ function TransitionLeft(props) {
 
         return() => {
             console.log('inside the return socket off')
-            socket.off('msgNotify',)
-            socket.off('favorites')
-            socket.off('matched')
+            socket.off('msgNotify', onMsgNotify)
+            socket.off('favorites', onFavorites)
+            socket.off('matched', onMatched)
 
         }
 

@@ -16,10 +16,12 @@ const ActiveFavorites = () => {
     useEffect(() => {
         // Favorites - get
 
-        socket.on('favorites', data=> {
+        function onAddFavorite(data){
             console.log('SECOND inside Favorites listener')
             setFavOnline((favOnline)=> [...favOnline, data])
-        })
+        }
+
+        socket.on('favorites', onAddFavorite)
         fetch(`/api/favorites`)
 
             .then((r) => {
@@ -34,10 +36,10 @@ const ActiveFavorites = () => {
             .catch((err)=> console.log(err))
         return() => {
 
-            socket.off('favorites')
+            
+
+            socket.off('favorites', onAddFavorite)
         }
-
-
 
     }, [])
 
