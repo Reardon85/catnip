@@ -299,13 +299,8 @@ class Logout(Resource):
         the_client.logged_off()
         print('WE ARE INSIDE THE LOG OUT VIEW $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
 
-        emit('favorites', {
-            'logon': False,
-            'id': the_client.id,
-            'avatar_url': the_client.avatar_url,
-            'username': the_client.username
-        }, room=the_client.id)
-
+        emit('favorites', {'logon': False, 'id': the_client.id, 'avatar_url': the_client.avatar_url,'username': the_client.username}, room=the_client.id, namespace='/')
+       
     
         
         disconnect()
