@@ -1030,9 +1030,9 @@ def match_percentage(the_client, the_user):
 #     userinfo = resp.json()
 #     return jsonify(userinfo)
 
-@app.route('/')
-@app.route('/<int:id>')
-def index(id=0):
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def index(path):
     return render_template("index.html")
 
 if __name__ == '__main__':
