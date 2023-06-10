@@ -5,7 +5,7 @@ import { Tab, Tabs, ListGroup, Card, Button, Container, Row, Col, Navbar, Nav,  
 import { Slide, Snackbar, Alert, Typography} from '@mui/material';
 
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { socket } from './socket';
+import { socket } from './Socket';
 import LoginButton from "./LoginButton";
 import LogoutButton from "./LogoutButton";
 import { User, useAuth0 } from "@auth0/auth0-react";

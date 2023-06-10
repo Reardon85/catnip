@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Messages from './Messages';
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { socket } from './socket';
+import { socket } from './Socket';
 
 
 
