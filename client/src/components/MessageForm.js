@@ -21,30 +21,29 @@ const MessageForm = ({user, convoId, messageDict, setMessageDict }) => {
  
 
     useEffect(() => {
-        console.log('starting convoID', convoId)
-        socket.emit('join', {  convoId, userId });
+      
+        socket.emit('join_convo', {  convoId, userId });
 
-        socket.on('user_connected', data => {
-            console.log('connected', data.Message)
-            setMessages(prevMessages => [...prevMessages, data.message]);
-        });
+        // socket.on('user_connected', data => {
+        //     setMessages(prevMessages => [...prevMessages, data.message]);
+        // });
 
         socket.on('message', data => {
-        console.log("test bro", data.message)
-        setMessageDict((messageDict) => ({
-            ...messageDict,
-            [data.convoId]: [...(messageDict[data.convoId] || []), data],
-        }));
+            setMessageDict((messageDict) => ({
+                ...messageDict,
+                [data.convoId]: [...(messageDict[data.convoId] || []), data],
+            }));
         
-        setMessages(prevMessages => [...prevMessages, data.message]);
+            // setMessages(prevMessages => [...prevMessages, data.message])
         });
 
         return () => {
-            console.log('cleanup convo id', convoId)
-            socket.off('user_connected');
-            socket.off('message');
+         
+            socket.emit('leave_convo', {convoId})
+            // socket.off('user_connected')
+            socket.off('message')
         }
-    }, [convoId])
+    }, [convoId]);
    
 
     const comment_array = convoId ? 

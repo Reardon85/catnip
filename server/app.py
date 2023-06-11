@@ -17,7 +17,7 @@ import requests
 from math import radians, sin, cos, sqrt, atan2
 from datetime import datetime, timedelta
 from random import randint, choice as rc
-from flask_socketio import SocketIO, emit, join_room, disconnect
+from flask_socketio import SocketIO, emit, join_room, disconnect, leave_room
 
 
 
@@ -112,13 +112,17 @@ def handle_listeners(data):
 
 
 
-@socketio.on('join')
+@socketio.on('join_convo')
 def on_join(data):
-    room = data['convoId']
-    join_room(room)
-    emit('user_connected', {'message':  "has entered the room."}, room=room)
+    convo_id = data['convoId']
+    join_room(convo_id)
+    # emit('user_connected', {'message':  "has entered the room."}, room=convo_id)
 
-
+@socketio.on('leave_convo')
+def on_leave(data):
+    convo_id= data['convoId']
+    leave_room(convo_id)
+    
 
 
 
