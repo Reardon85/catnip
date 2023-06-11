@@ -68,11 +68,19 @@ app.config['SECRET_KEY'] = 'secret!'
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+
+
+
+
 @socketio.on('connect')
 def handle_connect():
     print("I am connecting and joining the room sid")
     
     join_room(request.sid)
+
+
+
+
 
 @socketio.on('start')
 def handle_listeners(data):
@@ -99,14 +107,20 @@ def handle_listeners(data):
     "id": the_client.id,
     "username": the_client.username
   }, room= the_client.id)
+
+
+
+
+
 @socketio.on('join')
-
-
 def on_join(data):
     room = data['convoId']
     join_room(room)
-    
     emit('user_connected', {'message':  "has entered the room."}, room=room)
+
+
+
+
 
 @socketio.on('message')
 def handle_message(data):
@@ -117,12 +131,10 @@ def handle_message(data):
    
     message = Message(text=data['message'], convo_id=data['convoId'], user_id=data['userId'])
     db.session.add(message)
-    print(3)
+
     db.session.commit()
     the_convo = message.conversation
-    print(data['userId'])
-    print(the_convo.user_one_id)
-    print(the_convo.user_two_id)
+
     if int(data['userId']) == the_convo.user_one_id:
         print('inside the if ')
         the_convo.user_two_seen = False
@@ -131,29 +143,15 @@ def handle_message(data):
         the_convo.user_one_seen = False
 
         other_user = the_convo.user_one_id
-    print(other_user)
     the_user = User.query.filter_by(id = other_user).first()
-    print('sid', type(the_user.sid))
-    print(type(request.sid))
-    for room in socketio.server.rooms(request.sid):
-        print(type(room), room)
-        
-
-    print('all the rooms!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    
     db.session.add(the_convo)
     db.session.commit()
-    print(the_user.sid)
+
     emit('message', {'text': data['message'], 'user_id':the_client.id, 'username':the_client.username, 'avatar_url':the_client.avatar_url, 'convoId':data['convoId'], 'created_at':the_convo.created_at.isoformat() }, room=data['convoId'])
     if the_user.sid:
         emit('msgNotify', {'username':the_client.username, 'avatar_url':the_client.avatar_url }, room=the_user.sid, namespace='/')
 
-
-
-
-
-
-    
-    
 
 
 
@@ -163,6 +161,10 @@ class AuthError(Exception):
         self.error = error
         self.status_code = status_code
 
+
+
+
+
 def get_token_auth_header():
     """Obtains the access token from the Authorization Header"""
     auth = request.headers.get('Authorization', None)
@@ -170,7 +172,6 @@ def get_token_auth_header():
         raise AuthError({"code": "authorization_header_missing",
                         "description":
                             "Authorization header is expected"}, 401)
-
     parts = auth.split()
 
     if parts[0].lower() != 'bearer':
@@ -186,9 +187,12 @@ def get_token_auth_header():
                         "description":
                             "Authorization header must be"
                             " Bearer token"}, 401)
-
     token = parts[1]
     return token
+
+
+
+
 
 def requires_auth(f):
     """Determines if the access token is valid"""
@@ -222,10 +226,12 @@ def requires_auth(f):
                             "description":
                                 "Unable to parse authentication"
                                 " token."}, 401)
-        
         return f(*args, **kwargs)
-
     return decorated
+
+
+
+
 
 def add_coordinates(zip_code, the_client):
     api_key = os.environ.get('GEO_CODING_KEY')
@@ -251,6 +257,10 @@ def add_coordinates(zip_code, the_client):
     db.session.add(the_client)
     db.session.commit()
 
+
+
+
+
 def calculate_distance(lat1, lon1, lat2, lon2):
     # approximate radius of earth in km
     R = 3958.8 
@@ -270,15 +280,14 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     return int(distance)
 
 
+
+
+
 class Login(Resource):
     def get(self):
-        # Returns User Info for Client. May be weird Auth0. 
-        # For Login component - [Insert Button Click Function]
+        # Returns User Info for ClSient. May be weird Auth0. 
+        # For Login component - [Insert Button Click Function
 
-        
-
-
-        print("It worked")
         token = get_token_auth_header()
         unverified_claims = jwt.get_unverified_claims(token)
         sub_id = unverified_claims['sub']
@@ -287,10 +296,13 @@ class Login(Resource):
         if the_client:
             session['user_id'] = the_client.id
             the_client.update_activity()
-            return make_response({'newUser':False, 'user':the_client.to_dict()}, 200)
-            
+            return make_response({'newUser':False, 'user':the_client.to_dict()}, 200)            
         return make_response({'user':False, 'newUser':True}, 200)
 api.add_resource(Login, '/api/login')
+
+
+
+
 
 class Logout(Resource):
     def post(self):
@@ -298,14 +310,14 @@ class Logout(Resource):
         the_client = User.query.filter_by(id=session['user_id']).first()
         the_client.sid= ''
         the_client.logged_off()
-        print('WE ARE INSIDE THE LOG OUT VIEW $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
 
         emit('favorites', {'logon': False, 'id': the_client.id, 'avatar_url': the_client.avatar_url,'username': the_client.username}, room=the_client.id, namespace='/')
         session['user_id'] = None
-        return make_response({'message': 'Successfully Logged Out'}, 204)
-        
-
+        return make_response({'message': 'Successfully Logged Out'}, 204)        
 api.add_resource(Logout, '/api/logout')
+
+
+
 
 
 class Register(Resource):
@@ -322,10 +334,7 @@ class Register(Resource):
         orientation = request.values['orientation']
         birthday_str = request.values['birthday']
         birthday = datetime.strptime(birthday_str, '%Y-%m-%d').date()
-        print (birthday)
-
-        
-
+    
         s3 = boto3.resource('s3', aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
                             aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
         bucket = s3.Bucket('the-tea')
@@ -355,16 +364,7 @@ class Register(Resource):
         return make_response({'user':the_client.to_dict(), 'newUser': False}, 200)
 api.add_resource(Register, '/api/register')
 
-
         
-
-
-
-
-
-
-
-
 
 
 
@@ -379,6 +379,10 @@ class Visited(Resource):
 
         return make_response(visited_dict, 200)
 api.add_resource(Visited, '/api/visited')
+
+
+
+
 
 class Favorites(Resource):
     def get(self):
@@ -409,6 +413,10 @@ class Favorites(Resource):
         
         return make_response({'message': 'success'}, 204)
 api.add_resource(Favorites, '/api/favorites')
+
+
+
+
 
 class Suggest_Matches(Resource):
     def get(self):
@@ -446,6 +454,9 @@ class Suggest_Matches(Resource):
             return make_response(suggested_list, 200)
         return make_response({'error':'Not Found'}, 404)
 api.add_resource(Suggest_Matches, '/api/suggested-matches')
+
+
+
 
 
 class User_Profiles(Resource):
@@ -553,6 +564,9 @@ class User_Profiles(Resource):
 api.add_resource(User_Profiles, '/api/user/<int:user_id>')
 
 
+
+
+
 class User_Photos(Resource):
     def get(self, user_id):
         #Returns the 6 photos for a User with user_id. 
@@ -580,6 +594,10 @@ class User_Photos(Resource):
             return make_response({'message':'Image Uploaded Successfully'}, 201)
 api.add_resource(User_Photos, '/api/user/photos/<int:user_id>')
 
+
+
+
+
 class Remove_User_Photo(Resource):
     def delete(self, photo_id):
         #Deletes Photo obj with photo_id. Checks if Photo.user_id matches client id
@@ -592,6 +610,10 @@ class Remove_User_Photo(Resource):
             return make_response({'message':'Photo successfully delelted'})
         return make_response({'error':'Unauthorized Action'}, 400)
 api.add_resource(Remove_User_Photo, '/api/photo/<int:photo_id>')
+
+
+
+
 
 class User_Pets(Resource):
     def get(self, user_id):
@@ -633,6 +655,10 @@ class User_Pets(Resource):
             return make_response({'error': "Not Authorized"}, 400)
 api.add_resource(User_Pets, '/api/user/pets/<int:user_id>')
 
+
+
+
+
 class Pet_Profiles(Resource):
     def get(self, pet_id):
         #Returns basic pet Info for Pet's Profile
@@ -657,6 +683,10 @@ class Pet_Profiles(Resource):
         else:
             return make_response({'error': 'Unauthorized Request'}, 400)
 api.add_resource(Pet_Profiles, '/api/pet/<int:pet_id>')
+
+
+
+
 
 class PetPhotos(Resource):
     def get(self, pet_id):
@@ -695,6 +725,9 @@ class PetPhotos(Resource):
 api.add_resource(PetPhotos, '/api/pet/photos/<int:pet_id>')
 
 
+
+
+
 class Remove_PetPhoto(Resource):
     def delete(self, petphoto_id):
         #Deletes Photo obj with petphoto_id. Must checks that PetPhoto.pet.user_id matches client id
@@ -711,6 +744,9 @@ class Remove_PetPhoto(Resource):
         else:
             return make_response({'error':'Unauthorized Action'}, 400)
 api.add_resource(Remove_PetPhoto, '/api/petphotos/<int:petphoto_id>')
+
+
+
 
 
 class Quick_Match(Resource):
@@ -773,6 +809,8 @@ api.add_resource(Quick_Match, '/api/quick-match')
 
 
 
+
+
 class Matches(Resource):
     def get(self):
         #Return all all the Users's the Client has Matched with
@@ -828,6 +866,10 @@ class Matches(Resource):
      
 api.add_resource(Matches, '/api/match')
 
+
+
+
+
 class Visitors(Resource):
     def get(self):
         #Return a list of the last 20 users that visted the Client's Profile and the time they visited.
@@ -845,6 +887,10 @@ class Visitors(Resource):
             return make_response(visitors_dict_list, 200)
         return make_response({'error':'Not Found'}, 400)
 api.add_resource(Visitors, '/api/visitors')
+
+
+
+
 
 class Conversations(Resource):
     def get(self):
@@ -872,7 +918,11 @@ class Conversations(Resource):
             convo_list.append({**convo.to_dict(),**seen, **other_user.to_dict(only=('avatar_url', 'username'))})
         
         return make_response({'convo_id': first_convo_id, 'messages': the_dict, 'list':convo_list}, 200)
-    
+
+
+
+
+
     def post(self):
         #Passes user_id in post body. Check if a Converation obj for the client and user_id already exists if it does then update the updated_at time. otherwise create Obj
         # For Profile component - handleMessageUser()
@@ -899,6 +949,9 @@ class Conversations(Resource):
         return make_response(the_convo.to_dict(), 200)
 
 api.add_resource(Conversations, '/api/conversations')
+
+
+
 
 
 class Messages(Resource):
@@ -941,7 +994,8 @@ class Messages(Resource):
 api.add_resource(Messages, '/api/messages/<int:convo_id>')
 
 
-###### Need to Add Search Routes. 
+
+
 
 class AdvancedSearch(Resource):
     def get(self):
@@ -959,13 +1013,10 @@ class AdvancedSearch(Resource):
                 min_age, max_age = map(int, value.split(','))
                 min_date = datetime.now() - timedelta(days=min_age*365.25)
                 max_date = datetime.now() - timedelta(days=max_age*365.25)
-          
-                
+                          
                 query = query.filter(and_(User.birthdate<= min_date , User.birthdate>= max_date))
-                
-            
+                  
             elif attr == "distance":
-                
                 
                 print(int(value)*1600)
                 query = query.filter(db.func.earth_distance(
@@ -995,6 +1046,10 @@ class AdvancedSearch(Resource):
         
         return make_response(user_dict, 200)
 api.add_resource(AdvancedSearch, '/api/search/')
+
+
+
+
 
 def match_percentage(the_client, the_user):
     client_interested = the_client.interested_in.split('/')
@@ -1036,6 +1091,8 @@ def match_percentage(the_client, the_user):
 
 
 
+
+
 # @app.route('/login')
 # def login():
 #     return auth0.authorize_redirect(redirect_uri=app.config['AUTH0_CALLBACK_URL'])
@@ -1047,16 +1104,25 @@ def match_percentage(the_client, the_user):
 #     userinfo = resp.json()
 #     return jsonify(userinfo)
 
+
+
+
+# This is the code that solves the problem with deployment refreshes showing 404
 @app.errorhandler(404)
 def not_found(e):
     return app.send_static_file('index.html')
+
+
+
+
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def index(path):
     return send_from_directory(app.static_folder, 'index.html')
 
-if __name__ == '__main__':
-   
+
+
+if __name__ == '__main__':   
     socketio.run(app, port=5555, debug=True)
     

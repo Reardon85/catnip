@@ -9,48 +9,49 @@ import { socket } from './Socket';
 
 
 const MessageForm = ({user, convoId, messageDict, setMessageDict }) => {
-  const [message, setMessage] = useState('');
-  const [messageList, setMessageList] = useState([])
+    const [message, setMessage] = useState('');
+    const [messageList, setMessageList] = useState([])
 
-  const [Nmessage, setNMessage] = useState('');
-  const [messages, setMessages] = useState([]);
-  const {userId} = useParams()
-  // const socket = useSelector(state => state.socket.socket);
+    const [Nmessage, setNMessage] = useState('');
+    const [messages, setMessages] = useState([]);
+    const {userId} = useParams()
+    // const socket = useSelector(state => state.socket.socket);
+    
+
  
 
- 
+    useEffect(() => {
+        console.log('starting convoID', convoId)
+        socket.emit('join', {  convoId, userId });
 
-  useEffect(() => {
+        socket.on('user_connected', data => {
+            console.log('connected', data.Message)
+            setMessages(prevMessages => [...prevMessages, data.message]);
+        });
 
+        socket.on('message', data => {
+        console.log("test bro", data.message)
+        setMessageDict((messageDict) => ({
+            ...messageDict,
+            [data.convoId]: [...(messageDict[data.convoId] || []), data],
+        }));
+        
+        setMessages(prevMessages => [...prevMessages, data.message]);
+        });
 
-    socket.emit('join', {  convoId, userId });
-
-    socket.on('user_connected', data => {
-        console.log('connected', data.Message)
-      setMessages(prevMessages => [...prevMessages, data.message]);
-    });
-
-    socket.on('message', data => {
-      console.log("test bro", data.message)
-      setMessageDict((messageDict) => ({
-        ...messageDict,
-        [data.convoId]: [...(messageDict[data.convoId] || []), data],
-      }));
-      
-      
-      setMessages(prevMessages => [...prevMessages, data.message]);
-    });
-
-      
-    return () => {
-      socket.off('user_connected');
-      socket.off('message');}
-  }, [convoId])
+        return () => {
+            console.log('cleanup convo id', convoId)
+            socket.off('user_connected');
+            socket.off('message');
+        }
+    }, [convoId])
    
 
-    const comment_array = convoId ? Object.values(messageDict[convoId]).map((c) => {
-    return <Messages key={c.id} username={c.username} avatar={c.avatar_url} timestamp={c.created_at} content={c.text} userId={c.user_id} />
-        }) : " "
+    const comment_array = convoId ? 
+        Object.values(messageDict[convoId]).map((c) => {
+        return <Messages key={c.id} username={c.username} avatar={c.avatar_url} timestamp={c.created_at} content={c.text} userId={c.user_id} />
+        }) 
+        : " "
 
 
   const handleSubmit = (event) => {
